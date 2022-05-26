@@ -20,12 +20,11 @@ class Cars(QWidget):
         super().__init__()
         self.con()
         self.w = None
-        # self.initUI()
         # подключить базу данных
         self.con()
         # параметры окна
-        self.setGeometry(100, 100, 500, 600)
-        self.setWindowTitle('Журнал оценок')
+        self.setGeometry(100, 100, 1000, 800)
+        self.setWindowTitle('Машины')
         self.tb = Tb(self)
         # кнопка "обновить"
         self.btn = QPushButton('Обновить', self)
@@ -34,50 +33,62 @@ class Cars(QWidget):
         self.btn.clicked.connect(self.upd)
         # здесь идентификатор
         self.idp = QLineEdit(self)
+        self.idp.setPlaceholderText('Id')
         self.idp.resize(150, 40)
         self.idp.move(300, 60)
-        self.idp.setReadOnly(True)
-        # здесь фио
-        self.fio = QLineEdit(self)
-        self.fio.resize(150, 40)
-        self.fio.move(300, 110)
-        # здесь оценка
-        self.oce = QLineEdit(self)
-        self.oce.resize(150, 40)
-        self.oce.move(300, 160)
+        # здесь тип машины
+        self.type = QLineEdit(self)
+        self.type.setPlaceholderText('Type')
+        self.type.resize(150, 40)
+        self.type.move(300, 110)
+        # здесь изображение
+        self.img = QLineEdit(self)
+        self.img.setPlaceholderText('Img')
+        self.img.resize(150, 40)
+        self.img.move(300, 160)
+        # здесь номер машины
+        self.num = QLineEdit(self)
+        self.num.setPlaceholderText('Car number')
+        self.num.resize(150, 40)
+        self.num.move(300, 210)
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 210)
+        self.btn.move(300, 260)
         self.btn.clicked.connect(self.ins)
         # кнопка удалить запись
         self.btn = QPushButton('Удалить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 260)
+        self.btn.move(300, 310)
         self.btn.clicked.connect(self.dels)
 
+        self.btn = QPushButton(f'Меню', self)
+        self.btn.setGeometry(30, self.height() - 100, 100, 50)
+        self.btn.clicked.connect(self.to_menu)
+
+
+
+
     # соединение с базой данных
-    def con(self):
-        self.conn = psycopg2.connect(user="postgres",
-                                     password="123",
-                                     database="postgres")
-        self.cur = self.conn.cursor()
+
 
     # обновить таблицу и поля
     def upd(self):
         self.conn.commit()
         self.tb.updt()
         self.idp.setText('')
-        self.fio.setText('')
-        self.oce.setText('')
+        self.type.setText('')
+        self.img.setText('')
+        self.num.setText('')
+
 
     # добавить таблицу новую строку
     def ins(self):
-        fio, oce = self.fio.text(), self.oce.text()
+        idp, type, img, num = self.idp.text(), self.type.text(), self.img.text(), self.num.text()
         try:
-            self.cur.execute("insert into student (name, ocenka) values (%s,%s)", (fio, oce))
+            self.cur.execute("insert into cars (car_id, cars_type_id, img, car_number) values (%s,%s,%s,%s)", (int(idp), int(type), img, num))
         except:
-            pass
+            print('error')
         self.upd()
 
     # удалить из таблицы строку
@@ -86,49 +97,21 @@ class Cars(QWidget):
             ids = int(self.idp.text())  # идентификатор строки
         except:
             return
-        self.cur.execute("delete from student where id=%s", (ids,))
+        self.cur.execute("delete from cars where car_id=%s", (ids,))
+        self.conn.commit()
+        self.upd()
 
-
-    def initUI(self):
-        self.setFixedSize(1000, 800)
-
-        btn = QPushButton(f'Меню', self)
-        btn.setGeometry(30, self.height()-100, 100, 50)
-        btn.clicked.connect(self.to_menu)
-
-        btn = QPushButton(f'Добавить', self)
-        btn.setGeometry(self.width() - 130, self.height() - 100, 100, 50)
-        btn.clicked.connect(self.to_menu)
-
-
-        self.setGeometry(500, 200, int(self.width()/2), int(self.height()/1.5))
-        self.setWindowTitle('Cars')
-        self.show()
 
     def con(self):
         self.conn = psycopg2.connect(user="postgres",
                                      password="123",
-                                     host="192.168.0.67",
+                                     host="127.0.0.1",
                                      port="5432",
-                                     database="students")
+                                     database="postgres")
         self.cur = self.conn.cursor()
 
 
-    def updt(self):
-        self.clear()
-        self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['id', 'ФИО', 'Оценка'])  # заголовки столцов
-        self.wg.cur.execute("select * from student order by name")
-        rows = self.wg.cur.fetchall()
-        i = 0
-        for elem in rows:
-            self.setRowCount(self.rowCount() + 1)
-            j = 0
-            for t in elem:  # заполняем внутри строки
-                self.setItem(i, j, QTableWidgetItem(str(t).strip()))
-                j += 1
-            i += 1
-        self.resizeColumnsToContents()
+
 
 
     @pyqtSlot()
@@ -157,7 +140,7 @@ class Tb(QTableWidget):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
         self.setGeometry(10, 10, 280, 500)
-        self.setColumnCount(3)
+        self.setColumnCount(4)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
         self.setEditTriggers(QTableWidget.NoEditTriggers) # запретить изменять поля
@@ -167,9 +150,10 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['id', 'ФИО', 'Оценка']) # заголовки столцов
-        self.wg.cur.execute("select * from student order by name")
+        self.setHorizontalHeaderLabels(['car_id', 'cars_type_id', 'img', 'car_num']) # заголовки столцов
+        self.wg.cur.execute("select * from cars")
         rows = self.wg.cur.fetchall()
+        print(rows)
         i = 0
         for elem in rows:
             self.setRowCount(self.rowCount() + 1)
@@ -183,5 +167,6 @@ class Tb(QTableWidget):
 # обработка щелчка мыши по таблице
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.idp.setText(self.item(row, 0).text())
-        self.wg.fio.setText(self.item(row, 1).text().strip())
-        self.wg.oce.setText(self.item(row, 2).text().strip())
+        self.wg.type.setText(self.item(row, 1).text().strip())
+        self.wg.img.setText(self.item(row, 2).text().strip())
+        self.wg.num.setText(self.item(row, 3).text().strip())

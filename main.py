@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import cars, raice, drivers
+import cars, contracts, drivers
 
 import sys
 from PyQt5.QtWidgets import (QWidget, QToolTip,
@@ -74,7 +74,7 @@ class Menu(QWidget):
     def on_click_raice(self):
         self.window().close()
         if self.w is None:
-            self.w = raice.Raice()
+            self.w = contracts.Contracts()
             self.w.show()
 
         else:

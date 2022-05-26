@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
+from datetime import datetime
 import main
 
 
@@ -12,7 +12,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import pyqtSlot
 
 
-class Raice(QWidget):
+class Contracts(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -30,30 +30,65 @@ class Raice(QWidget):
         self.btn.move(300, 10)
         self.btn.clicked.connect(self.upd)
         # здесь идентификатор
-        self.idp = QLineEdit(self)
-        self.idp.resize(150, 40)
-        self.idp.move(300, 60)
+        self.contracts_id = QLineEdit(self)
+        self.contracts_id.setPlaceholderText('Contracts id')
+        self.contracts_id.resize(150, 40)
+        self.contracts_id.move(300, 60)
         # здесь тип машины
-        self.type = QLineEdit(self)
-        self.type.resize(150, 40)
-        self.type.move(300, 110)
+        self.client_id = QLineEdit(self)
+        self.client_id.setPlaceholderText('Client id')
+        self.client_id.resize(150, 40)
+        self.client_id.move(300, 110)
         # здесь изображение
-        self.img = QLineEdit(self)
-        self.img.resize(150, 40)
-        self.img.move(300, 160)
-        # здесь номер машины
-        self.num = QLineEdit(self)
-        self.num.resize(150, 40)
-        self.num.move(300, 210)
+        self.rate_id = QLineEdit(self)
+        self.rate_id.setPlaceholderText('Rate id')
+        self.rate_id.resize(150, 40)
+        self.rate_id.move(300, 160)
+        # здесь номер машины и водителя
+        self.cars_drivers = QLineEdit(self)
+
+        self.cars_drivers.setPlaceholderText('Сars drivers')
+        self.cars_drivers.resize(150, 40)
+        self.cars_drivers.move(300, 210)
+        #
+        self.dayFrom = QLineEdit(self)
+        self.dayFrom.setPlaceholderText('Day From')
+        self.dayFrom.resize(150, 40)
+        self.dayFrom.move(300, 260)
+        #
+        self.dayTo = QLineEdit(self)
+        self.dayTo.setPlaceholderText('Day To')
+        self.dayTo.resize(150, 40)
+        self.dayTo.move(300, 310)
+        #
+        self.loading_add = QLineEdit(self)
+        self.loading_add.setPlaceholderText('Loading address')
+        self.loading_add.resize(150, 40)
+        self.loading_add.move(300, 360)
+        #
+        self.unloading_add = QLineEdit(self)
+        self.unloading_add.setPlaceholderText('Unloading address')
+        self.unloading_add.resize(150, 40)
+        self.unloading_add.move(300, 410)
+        #
+        self.cargo_weights = QLineEdit(self)
+        self.cargo_weights.setPlaceholderText('Cargo weights')
+        self.cargo_weights.resize(150, 40)
+        self.cargo_weights.move(300, 460)
+        #
+        self.distance = QLineEdit(self)
+        self.distance.setPlaceholderText('Distance')
+        self.distance.resize(150, 40)
+        self.distance.move(300, 510)
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 260)
+        self.btn.move(300, 560)
         self.btn.clicked.connect(self.ins)
         # кнопка удалить запись
         self.btn = QPushButton('Удалить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 310)
+        self.btn.move(300, 610)
         self.btn.clicked.connect(self.dels)
 
         self.btn = QPushButton(f'Меню', self)
@@ -70,17 +105,31 @@ class Raice(QWidget):
     def upd(self):
         self.conn.commit()
         self.tb.updt()
-        self.idp.setText('')
-        self.type.setText('')
-        self.img.setText('')
-        self.num.setText('')
+        self.contracts_id.setText('')
+        self.client_id.setText('')
+        self.rate_id.setText('')
+        self.cars_drivers.setText('')
+        self.dayFrom.setText('')
+        self.dayTo.setText('')
+        self.loading_add.setText('')
+        self.unloading_add.setText('')
+        self.cargo_weights.setText('')
+        self.distance.setText('')
+
 
 
     # добавить таблицу новую строку
     def ins(self):
-        idp, type, img, num = self.idp.text(), self.type.text(), self.img.text(), self.num.text()
+        contracts_id, client_id, rate_id, cars_drivers, dayFrom, dayTo, loading_add, unloading_add, cargo_weights, distance = (self.contracts_id.text(), self.client_id.text(), self.rate_id.text(), self.cars_drivers.text(),
+                              self.dayFrom.text(), self.dayTo.text(), self.loading_add.text(), self.unloading_add.text(),
+                               self.cargo_weights.text(), self.distance.text())
+        # print(datetime.strptime(dayFrom, '%d.%m.%y'))
+
+        #TODO time
         try:
-            self.cur.execute("insert into cars (car_id, cars_type_id, img, car_number) values (%s,%s,%s,%s)", (int(idp), int(type), img, num))
+            self.cur.execute("insert into contracts (contracts_id, client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(contracts_id), int(client_id), int(rate_id), int(cars_drivers),
+                                                                                                                         datetime.strptime('01/01/10', '%d/%m/%y'), datetime.strptime('02/02/20', '%d/%m/%y'),
+                                                                                                                         loading_add, unloading_add, int(cargo_weights), int(distance)))
         except:
             print('error')
         self.upd()
@@ -88,10 +137,10 @@ class Raice(QWidget):
     # удалить из таблицы строку
     def dels(self):
         try:
-            ids = int(self.idp.text())  # идентификатор строки
+            contracts_id = int(self.contracts_id.text())  # идентификатор строки
         except:
             return
-        self.cur.execute("delete from cars where car_id=%s", (ids,))
+        self.cur.execute("delete from contracts where contracts_id=%s", (contracts_id,))
         self.conn.commit()
         self.upd()
 
@@ -134,7 +183,7 @@ class Tb(QTableWidget):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
         self.setGeometry(10, 10, 280, 500)
-        self.setColumnCount(4)
+        self.setColumnCount(10)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
         self.setEditTriggers(QTableWidget.NoEditTriggers) # запретить изменять поля
@@ -144,8 +193,8 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['car_id', 'cars_type_id', 'img', 'car_num']) # заголовки столцов
-        self.wg.cur.execute("select * from cars")
+        self.setHorizontalHeaderLabels(['contracts_id', 'client_id', 'rate_id', 'cars_drivers', 'dayfrom', 'dayto', 'loading_address', 'unloading_address', 'cargo_weight', 'distance']) # заголовки столцов
+        self.wg.cur.execute("select * from contracts")
         rows = self.wg.cur.fetchall()
         print(rows)
         i = 0
@@ -160,7 +209,13 @@ class Tb(QTableWidget):
 
 # обработка щелчка мыши по таблице
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
-        self.wg.idp.setText(self.item(row, 0).text())
-        self.wg.type.setText(self.item(row, 1).text().strip())
-        self.wg.img.setText(self.item(row, 2).text().strip())
-        self.wg.num.setText(self.item(row, 3).text().strip())
+        self.wg.contracts_id.setText(self.item(row, 0).text())
+        self.wg.client_id.setText(self.item(row, 1).text().strip())
+        self.wg.rate_id.setText(self.item(row, 2).text().strip())
+        self.wg.cars_drivers.setText(self.item(row, 3).text().strip())
+        self.wg.dayFrom.setText(self.item(row, 4).text().strip())
+        self.wg.dayTo.setText(self.item(row, 5).text().strip())
+        self.wg.loading_add.setText(self.item(row, 6).text().strip())
+        self.wg.unloading_add.setText(self.item(row, 7).text().strip())
+        self.wg.cargo_weights.setText(self.item(row, 8).text().strip())
+        self.wg.distance.setText(self.item(row, 9).text().strip())
