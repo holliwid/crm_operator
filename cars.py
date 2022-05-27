@@ -7,7 +7,7 @@ import main
 import sys
 import psycopg2
 from PyQt5.QtWidgets import QTableWidget, QApplication, QMainWindow, QTableWidget
-from PyQt5.QtWidgets import QTableWidgetItem, QWidget, QPushButton, QLineEdit
+from PyQt5.QtWidgets import QTableWidgetItem, QWidget, QPushButton, QLineEdit, QComboBox
 from PyQt5 import QtGui
 from PyQt5.QtCore import pyqtSlot
 
@@ -35,12 +35,17 @@ class Cars(QWidget):
         self.idp = QLineEdit(self)
         self.idp.setPlaceholderText('Id')
         self.idp.resize(150, 40)
-        self.idp.move(300, 60)
+        self.idp.move(300, 50)
+        self.idp.hide()
         # здесь тип машины
-        self.type = QLineEdit(self)
-        self.type.setPlaceholderText('Type')
+        self.type = QComboBox(self)
         self.type.resize(150, 40)
         self.type.move(300, 110)
+
+        self.cur.execute("SELECT cars_type_id, name FROM cars_type")
+        data = self.cur.fetchall()
+        for item_name in data:
+            self.type.addItem(item_name[1])
         # здесь изображение
         self.img = QLineEdit(self)
         self.img.setPlaceholderText('Img')
@@ -76,19 +81,19 @@ class Cars(QWidget):
     def upd(self):
         self.conn.commit()
         self.tb.updt()
-        self.idp.setText('')
-        self.type.setText('')
         self.img.setText('')
         self.num.setText('')
 
 
     # добавить таблицу новую строку
     def ins(self):
-        idp, type, img, num = self.idp.text(), self.type.text(), self.img.text(), self.num.text()
-        try:
-            self.cur.execute("insert into cars (car_id, cars_type_id, img, car_number) values (%s,%s,%s,%s)", (int(idp), int(type), img, num))
-        except:
-            print('error')
+        type_index = self.type.currentIndex() + 1
+        print(type)
+        img, num = self.img.text(), self.num.text()
+        # try:
+        self.cur.execute("insert into cars (cars_type_id, img, car_number) values (%s,%s,%s)", (int(type_index), img, num))
+        # except:
+        #     print('error')
         self.upd()
 
     # удалить из таблицы строку
@@ -150,7 +155,7 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['car_id', 'cars_type_id', 'img', 'car_num']) # заголовки столцов
+        self.setHorizontalHeaderLabels(['ID','Тип', 'Изображение', 'Номер']) # заголовки столцов
         self.wg.cur.execute("select * from cars")
         rows = self.wg.cur.fetchall()
         print(rows)
@@ -167,6 +172,6 @@ class Tb(QTableWidget):
 # обработка щелчка мыши по таблице
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.idp.setText(self.item(row, 0).text())
-        self.wg.type.setText(self.item(row, 1).text().strip())
+        self.wg.type.setCurrentIndex(int(self.item(row, 1).text().strip())-1)
         self.wg.img.setText(self.item(row, 2).text().strip())
         self.wg.num.setText(self.item(row, 3).text().strip())

@@ -6,7 +6,7 @@ import main
 
 import sys
 import psycopg2
-from PyQt5.QtWidgets import QTableWidget, QApplication, QMainWindow, QTableWidget
+from PyQt5.QtWidgets import QTableWidget, QApplication, QMainWindow, QTableWidget, QComboBox
 from PyQt5.QtWidgets import QTableWidgetItem, QWidget, QPushButton, QLineEdit
 from PyQt5 import QtGui
 from PyQt5.QtCore import pyqtSlot
@@ -36,16 +36,22 @@ class Drivers(QWidget):
         self.idp.setPlaceholderText('Id')
         self.idp.resize(150, 40)
         self.idp.move(300, 60)
+        self.idp.hide()
         # здесь тип название
         self.name = QLineEdit(self)
         self.name.setPlaceholderText('Name')
         self.name.resize(150, 40)
         self.name.move(300, 110)
         # здесь категории
-        self.categories = QLineEdit(self)
-        self.categories.setPlaceholderText('Categories')
+        self.categories = QComboBox(self)
         self.categories.resize(150, 40)
         self.categories.move(300, 160)
+
+        self.cur.execute("SELECT categorie_name FROM categories")
+        data = self.cur.fetchall()
+        for item_name in data:
+            self.categories.addItem(item_name[0])
+
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
         self.btn.resize(150, 40)
@@ -73,14 +79,14 @@ class Drivers(QWidget):
         self.tb.updt()
         self.idp.setText('')
         self.name.setText('')
-        self.categories.setText('')
 
 
     # добавить таблицу новую строку
     def ins(self):
-        idp, name, categories = self.idp.text(), self.name.text(), self.categories.text()
+        categories = self.categories.currentIndex() + 1
+        idp, name = self.idp.text(), self.name.text()
         try:
-            self.cur.execute("insert into drivers (driver_id, name_driver, categories) values (%s,%s,%s)", (int(idp), name, int(categories)))
+            self.cur.execute("insert into drivers (name_driver, categorie_id) values (%s,%s)", (name, categories))
         except:
             print('error')
         self.upd()
@@ -144,7 +150,7 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['driver_id', 'name', 'categories']) # заголовки столцов
+        self.setHorizontalHeaderLabels(['ID', 'Id водителя', 'ФИО', 'Категория прав']) # заголовки столцов
         self.wg.cur.execute("select * from drivers")
         rows = self.wg.cur.fetchall()
         print(rows)
@@ -162,4 +168,4 @@ class Tb(QTableWidget):
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.idp.setText(self.item(row, 0).text())
         self.wg.name.setText(self.item(row, 1).text().strip())
-        self.wg.categories.setText(self.item(row, 2).text().strip())
+        self.wg.categories.setCurrentIndex(int(self.item(row, 2).text().strip())-1)

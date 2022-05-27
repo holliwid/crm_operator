@@ -80,15 +80,25 @@ class Contracts(QWidget):
         self.distance.setPlaceholderText('Distance')
         self.distance.resize(150, 40)
         self.distance.move(300, 510)
+        #Стоимость
+        self.contracts_cost = QLineEdit(self)
+        self.contracts_cost.setPlaceholderText('Стоимость')
+        self.contracts_cost.resize(150, 40)
+        self.contracts_cost.move(300, 560)
+        #Рассчитать
+        self.btn = QPushButton('Рассчитать стоимость', self)
+        self.btn.resize(150, 40)
+        self.btn.move(300, 610)
+        self.btn.clicked.connect(self.calculate_cost)
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 560)
+        self.btn.move(300, 660)
         self.btn.clicked.connect(self.ins)
         # кнопка удалить запись
         self.btn = QPushButton('Удалить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 610)
+        self.btn.move(300, 710)
         self.btn.clicked.connect(self.dels)
 
         self.btn = QPushButton(f'Меню', self)
@@ -143,6 +153,17 @@ class Contracts(QWidget):
         self.cur.execute("delete from contracts where contracts_id=%s", (contracts_id,))
         self.conn.commit()
         self.upd()
+
+    def calculate_cost(self):
+        try:
+            contractss_id = int(self.contracts_id.text())
+        except:
+            return
+
+        self.cur.execute(f"select contracts.distance * cost_rates sums from  contracts left join rates ON contracts.rate_id = rates.rate_id  where contracts_id = {contractss_id}")
+
+        self.contracts_cost.setText(str(self.cur.fetchall()[0][0]))
+        print(self.cur.fetchall())
 
 
     def con(self):
