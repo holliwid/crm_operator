@@ -6,10 +6,9 @@ import main
 
 import sys
 import psycopg2
-from PyQt5.QtWidgets import QTableWidget, QApplication, QMainWindow, QTableWidget, QComboBox
-from PyQt5.QtWidgets import QTableWidgetItem, QWidget, QPushButton, QLineEdit
-from PyQt5 import QtGui
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 
 class Drivers(QWidget):
@@ -18,13 +17,18 @@ class Drivers(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.con()
         self.w = None
         # подключить базу данных
         self.con()
         # параметры окна
-        self.setGeometry(100, 100, 1000, 800)
+        self.resize(1000, 800)
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
         self.setWindowTitle('Водители')
+
+
         self.tb = Tb(self)
         # кнопка "обновить"
         self.btn = QPushButton('Обновить', self)
@@ -39,7 +43,7 @@ class Drivers(QWidget):
         self.idp.hide()
         # здесь тип название
         self.name = QLineEdit(self)
-        self.name.setPlaceholderText('Name')
+        self.name.setPlaceholderText('ФИО')
         self.name.resize(150, 40)
         self.name.move(300, 110)
         # здесь категории
@@ -51,6 +55,7 @@ class Drivers(QWidget):
         data = self.cur.fetchall()
         for item_name in data:
             self.categories.addItem(item_name[0])
+
 
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
@@ -150,8 +155,9 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['ID', 'Id водителя', 'ФИО', 'Категория прав']) # заголовки столцов
-        self.wg.cur.execute("select * from drivers")
+        self.setHorizontalHeaderLabels(['ID', 'ФИО', 'Категория прав']) # заголовки столцов
+        self.wg.cur.execute("select d.driver_id, d.name_driver, c.categorie_name  from drivers d \
+	                         left join categories c on c.categorie_id = d.categorie_id ")
         rows = self.wg.cur.fetchall()
         print(rows)
         i = 0
@@ -168,4 +174,4 @@ class Tb(QTableWidget):
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.idp.setText(self.item(row, 0).text())
         self.wg.name.setText(self.item(row, 1).text().strip())
-        self.wg.categories.setCurrentIndex(int(self.item(row, 2).text().strip())-1)
+        self.wg.categories.setCurrentText(self.item(row, 2).text().strip())

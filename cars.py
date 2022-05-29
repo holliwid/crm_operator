@@ -4,12 +4,10 @@
 import main
 
 
-import sys
 import psycopg2
-from PyQt5.QtWidgets import QTableWidget, QApplication, QMainWindow, QTableWidget
-from PyQt5.QtWidgets import QTableWidgetItem, QWidget, QPushButton, QLineEdit, QComboBox
-from PyQt5 import QtGui
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 
 class Cars(QWidget):
@@ -23,7 +21,13 @@ class Cars(QWidget):
         # подключить базу данных
         self.con()
         # параметры окна
-        self.setGeometry(100, 100, 1000, 800)
+        self.resize(1000, 800)
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+
         self.setWindowTitle('Машины')
         self.tb = Tb(self)
         # кнопка "обновить"
@@ -42,18 +46,18 @@ class Cars(QWidget):
         self.type.resize(150, 40)
         self.type.move(300, 110)
 
-        self.cur.execute("SELECT cars_type_id, name FROM cars_type")
+        self.cur.execute("SELECT cars_type_id, type_name FROM cars_type")
         data = self.cur.fetchall()
         for item_name in data:
             self.type.addItem(item_name[1])
         # здесь изображение
         self.img = QLineEdit(self)
-        self.img.setPlaceholderText('Img')
+        self.img.setPlaceholderText('Путь к изображению')
         self.img.resize(150, 40)
         self.img.move(300, 160)
         # здесь номер машины
         self.num = QLineEdit(self)
-        self.num.setPlaceholderText('Car number')
+        self.num.setPlaceholderText('Номер машины')
         self.num.resize(150, 40)
         self.num.move(300, 210)
         # кнопка добавить запись
@@ -156,7 +160,8 @@ class Tb(QTableWidget):
         self.clear()
         self.setRowCount(0);
         self.setHorizontalHeaderLabels(['ID','Тип', 'Изображение', 'Номер']) # заголовки столцов
-        self.wg.cur.execute("select * from cars")
+        self.wg.cur.execute("select c.car_id, ct.type_name, c.img, c.car_number  from cars c \
+	                         left join cars_type ct on c.cars_type_id = ct.cars_type_id ")
         rows = self.wg.cur.fetchall()
         print(rows)
         i = 0
@@ -172,6 +177,6 @@ class Tb(QTableWidget):
 # обработка щелчка мыши по таблице
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.idp.setText(self.item(row, 0).text())
-        self.wg.type.setCurrentIndex(int(self.item(row, 1).text().strip())-1)
+        self.wg.type.setCurrentText(self.item(row, 1).text().strip())
         self.wg.img.setText(self.item(row, 2).text().strip())
         self.wg.num.setText(self.item(row, 3).text().strip())

@@ -6,10 +6,9 @@ import main
 
 import sys
 import psycopg2
-from PyQt5.QtWidgets import QTableWidget, QApplication, QMainWindow, QTableWidget
-from PyQt5.QtWidgets import QTableWidgetItem, QWidget, QPushButton, QLineEdit
-from PyQt5 import QtGui
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 
 class Contracts(QWidget):
@@ -21,94 +20,147 @@ class Contracts(QWidget):
         # подключить базу данных
         self.con()
         # параметры окна
-        self.setGeometry(100, 100, 1000, 800)
+        self.resize(1200, 800)
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
         self.setWindowTitle('Рейсы')
+
         self.tb = Tb(self)
         # кнопка "обновить"
-        self.btn = QPushButton('Обновить', self)
+        self.btn = QPushButton('Все рейсы', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 10)
+        self.btn.move(900, 10)
         self.btn.clicked.connect(self.upd)
         # здесь идентификатор
         self.contracts_id = QLineEdit(self)
-        self.contracts_id.setPlaceholderText('Contracts id')
+        self.contracts_id.setPlaceholderText('ID контракта')
         self.contracts_id.resize(150, 40)
-        self.contracts_id.move(300, 60)
+        self.contracts_id.move(900, 60)
+        self.contracts_id.hide()
         # здесь тип машины
-        self.client_id = QLineEdit(self)
-        self.client_id.setPlaceholderText('Client id')
-        self.client_id.resize(150, 40)
-        self.client_id.move(300, 110)
-        # здесь изображение
-        self.rate_id = QLineEdit(self)
-        self.rate_id.setPlaceholderText('Rate id')
-        self.rate_id.resize(150, 40)
-        self.rate_id.move(300, 160)
-        # здесь номер машины и водителя
-        self.cars_drivers = QLineEdit(self)
+        self.client_id_label = QLabel(self)
+        self.client_id_label.setText('ID клиента')
+        self.client_id_label.setAlignment(Qt.AlignCenter)
+        self.client_id_label.resize(150, 20)
+        self.client_id_label.move(900, 70)
 
+        self.client_id = QComboBox(self)
+        self.client_id.resize(150, 40)
+        self.client_id.move(900, 90)
+
+        self.cur.execute("SELECT client_id FROM clients")
+        data = self.cur.fetchall()
+        for item_name in data:
+            self.client_id.addItem(str(item_name[0]))
+        # здесь изображение
+        self.rate_id_label = QLabel(self)
+        self.rate_id_label.setText('ID тарифа')
+        self.rate_id_label.setAlignment(Qt.AlignCenter)
+        self.rate_id_label.resize(150, 20)
+        self.rate_id_label.move(900, 140)
+
+        self.rate_id = QComboBox(self)
+        self.rate_id.setPlaceholderText('ID тарифа')
+        self.rate_id.resize(150, 40)
+        self.rate_id.move(900, 160)
+        self.rate_id.activated.connect(self.change_drivers_cars)
+
+        self.cur.execute("SELECT rate_id FROM rates")
+        data = self.cur.fetchall()
+        for item_name in data:
+            self.rate_id.addItem(str(item_name[0]))
+
+        # здесь номер машины и водителя
+        self.cars_drivers = QComboBox(self)
         self.cars_drivers.setPlaceholderText('Сars drivers')
         self.cars_drivers.resize(150, 40)
-        self.cars_drivers.move(300, 210)
+        self.cars_drivers.move(900, 210)
+
+
+
         #
         self.dayFrom = QLineEdit(self)
-        self.dayFrom.setPlaceholderText('Day From')
+        self.dayFrom.setPlaceholderText('Дата начала')
         self.dayFrom.resize(150, 40)
-        self.dayFrom.move(300, 260)
+        self.dayFrom.move(900, 260)
         #
         self.dayTo = QLineEdit(self)
-        self.dayTo.setPlaceholderText('Day To')
+        self.dayTo.setPlaceholderText('Дата конца')
         self.dayTo.resize(150, 40)
-        self.dayTo.move(300, 310)
+        self.dayTo.move(900, 310)
         #
         self.loading_add = QLineEdit(self)
-        self.loading_add.setPlaceholderText('Loading address')
+        self.loading_add.setPlaceholderText('Адресс загрузки')
         self.loading_add.resize(150, 40)
-        self.loading_add.move(300, 360)
+        self.loading_add.move(900, 360)
         #
         self.unloading_add = QLineEdit(self)
-        self.unloading_add.setPlaceholderText('Unloading address')
+        self.unloading_add.setPlaceholderText('Адресс выгрузки')
         self.unloading_add.resize(150, 40)
-        self.unloading_add.move(300, 410)
+        self.unloading_add.move(900, 410)
         #
         self.cargo_weights = QLineEdit(self)
-        self.cargo_weights.setPlaceholderText('Cargo weights')
+        self.cargo_weights.setPlaceholderText('Вес груза')
         self.cargo_weights.resize(150, 40)
-        self.cargo_weights.move(300, 460)
+        self.cargo_weights.move(900, 460)
         #
         self.distance = QLineEdit(self)
-        self.distance.setPlaceholderText('Distance')
+        self.distance.setPlaceholderText('Дистанция')
         self.distance.resize(150, 40)
-        self.distance.move(300, 510)
+        self.distance.move(900, 510)
         #Стоимость
         self.contracts_cost = QLineEdit(self)
         self.contracts_cost.setPlaceholderText('Стоимость')
         self.contracts_cost.resize(150, 40)
-        self.contracts_cost.move(300, 560)
+        self.contracts_cost.move(900, 560)
         #Рассчитать
         self.btn = QPushButton('Рассчитать стоимость', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 610)
+        self.btn.move(900, 610)
         self.btn.clicked.connect(self.calculate_cost)
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 660)
+        self.btn.move(900, 660)
         self.btn.clicked.connect(self.ins)
         # кнопка удалить запись
         self.btn = QPushButton('Удалить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 710)
+        self.btn.move(900, 710)
         self.btn.clicked.connect(self.dels)
 
         self.btn = QPushButton(f'Меню', self)
         self.btn.setGeometry(30, self.height() - 100, 100, 50)
         self.btn.clicked.connect(self.to_menu)
 
+        self.btn = QPushButton(f'Действующие контракты', self)
+        self.btn.setGeometry(230, self.height() - 250, 200, 50)
+        self.btn.clicked.connect(self.tb.updt_current)
+
+        self.btn = QPushButton(f'Распечатать контракт', self)
+        self.btn.setGeometry(630, self.height() - 250, 200, 50)
+        self.btn.clicked.connect(self.save_contract)
 
 
 
-    # соединение с базой данных
+
+    def change_drivers_cars(self):
+        self.cars_drivers.clear()
+        rate_id = (self.rate_id.currentText())
+        self.cur.execute(f"select cd.cars_drivers_id  from rates r \
+	                     left join cars_type ct on ct.cars_type_id = r.cars_type_id \
+		                 left join cars c on c.cars_type_id = ct.cars_type_id \
+			             left join cars_drivers cd on cd.car_id = c.car_id \
+				         left join contracts c2 on c2.cars_drivers_id = cd.cars_drivers_id \
+                         where r.rate_id = {rate_id} \
+                         and (c2.dayto < current_date or c2.dayfrom > current_date or c2.dayfrom is null)")
+        data = self.cur.fetchall()
+        for item_name in data:
+            print(type(item_name[0]))
+            if item_name[0] is not None:
+                self.cars_drivers.addItem(str(item_name[0]))
 
 
     # обновить таблицу и поля
@@ -116,9 +168,6 @@ class Contracts(QWidget):
         self.conn.commit()
         self.tb.updt()
         self.contracts_id.setText('')
-        self.client_id.setText('')
-        self.rate_id.setText('')
-        self.cars_drivers.setText('')
         self.dayFrom.setText('')
         self.dayTo.setText('')
         self.loading_add.setText('')
@@ -130,18 +179,25 @@ class Contracts(QWidget):
 
     # добавить таблицу новую строку
     def ins(self):
-        contracts_id, client_id, rate_id, cars_drivers, dayFrom, dayTo, loading_add, unloading_add, cargo_weights, distance = (self.contracts_id.text(), self.client_id.text(), self.rate_id.text(), self.cars_drivers.text(),
-                              self.dayFrom.text(), self.dayTo.text(), self.loading_add.text(), self.unloading_add.text(),
-                               self.cargo_weights.text(), self.distance.text())
+        contracts_id = self.contracts_id.text()
+        client_id = self.client_id.currentText()
+        rate_id = self.rate_id.currentText()
+        cars_drivers = self.cars_drivers.currentText()
+        dayFrom = self.dayFrom.text()
+        dayTo = self.dayTo.text()
+        loading_add = self.loading_add.text()
+        unloading_add = self.unloading_add.text()
+        cargo_weights = self.cargo_weights.text()
+        distance = self.distance.text()
         # print(datetime.strptime(dayFrom, '%d.%m.%y'))
 
         #TODO time
-        try:
-            self.cur.execute("insert into contracts (contracts_id, client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(contracts_id), int(client_id), int(rate_id), int(cars_drivers),
+        # try:
+        self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
                                                                                                                          datetime.strptime('01/01/10', '%d/%m/%y'), datetime.strptime('02/02/20', '%d/%m/%y'),
                                                                                                                          loading_add, unloading_add, int(cargo_weights), int(distance)))
-        except:
-            print('error')
+        # except:
+        #     print('error')
         self.upd()
 
     # удалить из таблицы строку
@@ -156,11 +212,13 @@ class Contracts(QWidget):
 
     def calculate_cost(self):
         try:
-            contractss_id = int(self.contracts_id.text())
+            rate_id = self.rate_id.currentText()
+            distance = int(self.distance.text())
         except:
             return
 
-        self.cur.execute(f"select contracts.distance * cost_rates sums from  contracts left join rates ON contracts.rate_id = rates.rate_id  where contracts_id = {contractss_id}")
+        self.cur.execute(f"select r.cost_rates * {distance} from rates r \
+	                      where r.rate_id = {rate_id}")
 
         self.contracts_cost.setText(str(self.cur.fetchall()[0][0]))
         print(self.cur.fetchall())
@@ -173,6 +231,27 @@ class Contracts(QWidget):
                                      port="5432",
                                      database="postgres")
         self.cur = self.conn.cursor()
+
+
+    def save_contract(self):
+        dlg = QFileDialog(self)
+        dlg.setFileMode(QFileDialog.AnyFile)
+        dlg.selectFile(".txt")
+        dlg.setDefaultSuffix(".txt")
+        dlg.setNameFilters(["Text files (*.txt)"])
+        path = dlg.getSaveFileName(self, "Save file", ".txt", "Text files (*.txt)")
+        if not path:
+            return
+        print(path)
+        file = open(path[0], 'w')
+        row = self.tb.currentRow()
+        text = ""
+        for x in range(1, 10):
+            text += self.tb.horizontalHeaderItem(x).text() + ': ' + self.tb.item(row, x).text() + '\n'
+        print(text)
+        file.write(text)
+        file.close()
+        print("i print")
 
 
 
@@ -203,7 +282,7 @@ class Tb(QTableWidget):
     def __init__(self, wg):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
-        self.setGeometry(10, 10, 280, 500)
+        self.setGeometry(10, 10, 855, 500)
         self.setColumnCount(10)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
@@ -214,8 +293,26 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['contracts_id', 'client_id', 'rate_id', 'cars_drivers', 'dayfrom', 'dayto', 'loading_address', 'unloading_address', 'cargo_weight', 'distance']) # заголовки столцов
+        self.setHorizontalHeaderLabels(['ID контракта', 'ID клиента', 'ID тарифа', 'cars_drivers', 'Дата начала', 'Дата конца', 'Адресс загрузки', 'Адресс выгрузки', 'Вес груза', 'Дистанция']) # заголовки столцов
         self.wg.cur.execute("select * from contracts")
+        rows = self.wg.cur.fetchall()
+        print(rows)
+        i = 0
+        for elem in rows:
+            self.setRowCount(self.rowCount() + 1)
+            j = 0
+            for t in elem: # заполняем внутри строки
+                self.setItem(i, j, QTableWidgetItem(str(t).strip()))
+                j += 1
+            i += 1
+        self.resizeColumnsToContents()
+
+
+    def updt_current(self):
+        self.clear()
+        self.setRowCount(0);
+        self.setHorizontalHeaderLabels(['ID контракта', 'ID клиента', 'ID тарифа', 'cars_drivers', 'Дата начала', 'Дата конца', 'Адресс загрузки', 'Адресс выгрузки', 'Вес груза', 'Дистанция']) # заголовки столцов
+        self.wg.cur.execute("select * from contracts where dayto > current_date")
         rows = self.wg.cur.fetchall()
         print(rows)
         i = 0
@@ -231,9 +328,9 @@ class Tb(QTableWidget):
 # обработка щелчка мыши по таблице
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.contracts_id.setText(self.item(row, 0).text())
-        self.wg.client_id.setText(self.item(row, 1).text().strip())
-        self.wg.rate_id.setText(self.item(row, 2).text().strip())
-        self.wg.cars_drivers.setText(self.item(row, 3).text().strip())
+        self.wg.client_id.setCurrentIndex(int(self.item(row, 1).text().strip())-1)
+        self.wg.rate_id.setCurrentIndex(int(self.item(row, 2).text().strip())-1)
+        self.wg.cars_drivers.setCurrentText(self.item(row, 3).text().strip())
         self.wg.dayFrom.setText(self.item(row, 4).text().strip())
         self.wg.dayTo.setText(self.item(row, 5).text().strip())
         self.wg.loading_add.setText(self.item(row, 6).text().strip())

@@ -1,16 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import cars, contracts, drivers
+import cars, contracts, drivers, clients, garage, free_drivers
 
 import sys
-from PyQt5.QtWidgets import (QWidget, QToolTip,
-    QPushButton, QApplication)
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QMainWindow, QLabel
-from PyQt5.QtWidgets import QGridLayout, QWidget, QDesktopWidget
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
-
+import psycopg2
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 class Menu(QWidget):
 
@@ -24,11 +20,11 @@ class Menu(QWidget):
     def initUI(self):
         QToolTip.setFont(QFont('SansSerif', 10))
 
-        self.setFixedSize(1000, 800)
-        qtRectangle = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
-        qtRectangle.moveCenter(centerPoint)
-        self.move(qtRectangle.topLeft())
+        self.resize(1000, 800)
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
 
         btn = QPushButton(f'Машины', self)
@@ -43,6 +39,17 @@ class Menu(QWidget):
         btn.setGeometry(int(self.width() / 2) - 100, 350, 200, 100)
         btn.clicked.connect(self.on_click_raice)
 
+        btn = QPushButton(f'Клиенты', self)
+        btn.setGeometry(int(self.width() / 2) - 100, 500, 200, 100)
+        btn.clicked.connect(self.on_click_clients)
+
+        btn = QPushButton(f'Гараж', self)
+        btn.setGeometry(int(self.width() / 2) - 100, 650, 200, 100)
+        btn.clicked.connect(self.on_click_garage)
+
+        btn = QPushButton(f'Свободные водители', self)
+        btn.setGeometry(int(self.width() / 2) + 150, 650, 200, 100)
+        btn.clicked.connect(self.on_click_free_drivers)
 
         self.setWindowTitle('Menu')
         self.show()
@@ -75,6 +82,39 @@ class Menu(QWidget):
         self.window().close()
         if self.w is None:
             self.w = contracts.Contracts()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_clients(self):
+        self.window().close()
+        if self.w is None:
+            self.w = clients.Clients()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_garage(self):
+        self.window().close()
+        if self.w is None:
+            self.w = garage.Garage()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_free_drivers(self):
+        self.window().close()
+        if self.w is None:
+            self.w = free_drivers.Free_drivers()
             self.w.show()
 
         else:
