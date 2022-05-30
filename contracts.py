@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 from datetime import datetime
-import main
+import cars, contracts, drivers, clients, garage, free_drivers,cars_drivers
+import navbar
+
 
 
 import sys
@@ -11,60 +13,91 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 
-class Contracts(QWidget):
+class Contracts(QMainWindow):
 
     def __init__(self):
         super().__init__()
         self.con()
         self.w = None
+        navbar.createToolBars(self)
         # подключить базу данных
         self.con()
         # параметры окна
-        self.resize(1200, 800)
+        self.resize(1250, 800)
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
         self.setWindowTitle('Рейсы')
 
+
         self.tb = Tb(self)
-        # кнопка "обновить"
+
+
+        # кнопки
         self.btn = QPushButton('Все рейсы', self)
-        self.btn.resize(150, 40)
-        self.btn.move(900, 10)
+        self.btn.resize(200, 50)
+        self.btn.move(1000, 40)
         self.btn.clicked.connect(self.upd)
+
+        self.btn = QPushButton(f'Действующие контракты', self)
+        self.btn.setGeometry(1000, 100, 200, 50)
+        self.btn.clicked.connect(self.tb.updt_current)
+
+        # кнопка добавить запись
+        self.btn = QPushButton('Добавить', self)
+        self.btn.resize(200, 50)
+        self.btn.move(1000, 440)
+        self.btn.clicked.connect(self.ins)
+        # кнопка удалить запись
+        self.btn = QPushButton('Удалить', self)
+        self.btn.resize(200, 50)
+        self.btn.move(1000, 500)
+        self.btn.clicked.connect(self.dels)
+
+        self.btn = QPushButton(f'Распечатать контракт', self)
+        self.btn.setGeometry(1000, 180, 200, 50)
+        self.btn.clicked.connect(self.save_contract)
+
         # здесь идентификатор
         self.contracts_id = QLineEdit(self)
         self.contracts_id.setPlaceholderText('ID контракта')
         self.contracts_id.resize(150, 40)
-        self.contracts_id.move(900, 60)
+        self.contracts_id.move(40, 600)
         self.contracts_id.hide()
-        # здесь тип машины
+        # здесь ид клиета
         self.client_id_label = QLabel(self)
         self.client_id_label.setText('ID клиента')
         self.client_id_label.setAlignment(Qt.AlignCenter)
         self.client_id_label.resize(150, 20)
-        self.client_id_label.move(900, 70)
+        self.client_id_label.move(20, 550)
 
         self.client_id = QComboBox(self)
         self.client_id.resize(150, 40)
-        self.client_id.move(900, 90)
+        self.client_id.move(20, 570)
 
         self.cur.execute("SELECT client_id FROM clients")
         data = self.cur.fetchall()
         for item_name in data:
             self.client_id.addItem(str(item_name[0]))
-        # здесь изображение
+
+        self.client_id_name = QLineEdit(self)
+        self.client_id_name.setPlaceholderText('ФИО клиента')
+        self.client_id_name.resize(150, 40)
+        self.client_id_name.move(180, 570)
+        self.client_id_name.setReadOnly(True)
+
+        # здесь тариф
         self.rate_id_label = QLabel(self)
         self.rate_id_label.setText('ID тарифа')
         self.rate_id_label.setAlignment(Qt.AlignCenter)
         self.rate_id_label.resize(150, 20)
-        self.rate_id_label.move(900, 140)
+        self.rate_id_label.move(20, 620)
 
         self.rate_id = QComboBox(self)
         self.rate_id.setPlaceholderText('ID тарифа')
         self.rate_id.resize(150, 40)
-        self.rate_id.move(900, 160)
+        self.rate_id.move(20, 650)
         self.rate_id.activated.connect(self.change_drivers_cars)
 
         self.cur.execute("SELECT rate_id FROM rates")
@@ -72,76 +105,111 @@ class Contracts(QWidget):
         for item_name in data:
             self.rate_id.addItem(str(item_name[0]))
 
+        self.client_id_name = QLineEdit(self)
+        self.client_id_name.setPlaceholderText('Навание тарифа')
+        self.client_id_name.resize(150, 40)
+        self.client_id_name.move(180, 650)
+        self.client_id_name.setReadOnly(True)
+
         # здесь номер машины и водителя
+        self.сars_drivers_id_label = QLabel(self)
+        self.сars_drivers_id_label.setText('Водитель и машина')
+        self.сars_drivers_id_label.setAlignment(Qt.AlignCenter)
+        self.сars_drivers_id_label.resize(150, 20)
+        self.сars_drivers_id_label.move(20, 710)
+
         self.cars_drivers = QComboBox(self)
         self.cars_drivers.setPlaceholderText('Сars drivers')
         self.cars_drivers.resize(150, 40)
-        self.cars_drivers.move(900, 210)
+        self.cars_drivers.move(20, 740)
+
+        self.client_id_name = QLineEdit(self)
+        self.client_id_name.setPlaceholderText('Водитель и машина')
+        self.client_id_name.resize(150, 40)
+        self.client_id_name.move(180, 740)
+        self.client_id_name.setReadOnly(True)
 
 
+        # Даты
+        self.client_id_label = QLabel(self)
+        self.client_id_label.setText('Даты')
+        self.client_id_label.setAlignment(Qt.AlignCenter)
+        self.client_id_label.resize(150, 20)
+        self.client_id_label.move(370, 550)
 
-        #
+
         self.dayFrom = QLineEdit(self)
         self.dayFrom.setPlaceholderText('Дата начала')
         self.dayFrom.resize(150, 40)
-        self.dayFrom.move(900, 260)
+        self.dayFrom.move(370, 570)
         #
         self.dayTo = QLineEdit(self)
         self.dayTo.setPlaceholderText('Дата конца')
         self.dayTo.resize(150, 40)
-        self.dayTo.move(900, 310)
-        #
+        self.dayTo.move(370, 620)
+
+
+        #Ареса
+        self.client_id_label = QLabel(self)
+        self.client_id_label.setText('Адресы')
+        self.client_id_label.setAlignment(Qt.AlignCenter)
+        self.client_id_label.resize(150, 20)
+        self.client_id_label.move(570, 550)
+
+
         self.loading_add = QLineEdit(self)
-        self.loading_add.setPlaceholderText('Адресс загрузки')
+        self.loading_add.setPlaceholderText('Адрес загрузки')
         self.loading_add.resize(150, 40)
-        self.loading_add.move(900, 360)
+        self.loading_add.move(570, 570)
         #
         self.unloading_add = QLineEdit(self)
         self.unloading_add.setPlaceholderText('Адресс выгрузки')
         self.unloading_add.resize(150, 40)
-        self.unloading_add.move(900, 410)
+        self.unloading_add.move(570, 620)
+
+
+
         #
         self.cargo_weights = QLineEdit(self)
         self.cargo_weights.setPlaceholderText('Вес груза')
         self.cargo_weights.resize(150, 40)
-        self.cargo_weights.move(900, 460)
+        self.cargo_weights.move(760, 570)
         #
         self.distance = QLineEdit(self)
         self.distance.setPlaceholderText('Дистанция')
         self.distance.resize(150, 40)
-        self.distance.move(900, 510)
+        self.distance.move(760, 620)
+
+
         #Стоимость
         self.contracts_cost = QLineEdit(self)
         self.contracts_cost.setPlaceholderText('Стоимость')
-        self.contracts_cost.resize(150, 40)
-        self.contracts_cost.move(900, 560)
+        self.contracts_cost.resize(170, 40)
+        self.contracts_cost.move(650, 690)
         #Рассчитать
         self.btn = QPushButton('Рассчитать стоимость', self)
-        self.btn.resize(150, 40)
-        self.btn.move(900, 610)
+        self.btn.resize(170, 40)
+        self.btn.move(650, 740)
         self.btn.clicked.connect(self.calculate_cost)
-        # кнопка добавить запись
-        self.btn = QPushButton('Добавить', self)
-        self.btn.resize(150, 40)
-        self.btn.move(900, 660)
-        self.btn.clicked.connect(self.ins)
-        # кнопка удалить запись
-        self.btn = QPushButton('Удалить', self)
-        self.btn.resize(150, 40)
-        self.btn.move(900, 710)
-        self.btn.clicked.connect(self.dels)
 
-        self.btn = QPushButton(f'Меню', self)
-        self.btn.setGeometry(30, self.height() - 100, 100, 50)
-        self.btn.clicked.connect(self.to_menu)
+        # Время
+        self.time = QLineEdit(self)
+        self.time.setPlaceholderText('Время')
+        self.time.resize(170, 40)
+        self.time.move(830, 690)
+        # Рассчитать
+        self.btn = QPushButton('Рассчитать время', self)
+        self.btn.resize(170, 40)
+        self.btn.move(830, 740)
+        self.btn.clicked.connect(self.calculate_time)
 
-        self.btn = QPushButton(f'Действующие контракты', self)
-        self.btn.setGeometry(230, self.height() - 250, 200, 50)
-        self.btn.clicked.connect(self.tb.updt_current)
+        self.show()
 
-        self.btn = QPushButton(f'Распечатать контракт', self)
-        self.btn.setGeometry(630, self.height() - 250, 200, 50)
-        self.btn.clicked.connect(self.save_contract)
+
+
+
+
+
 
 
 
@@ -191,10 +259,10 @@ class Contracts(QWidget):
         distance = self.distance.text()
         # print(datetime.strptime(dayFrom, '%d.%m.%y'))
 
-        #TODO time
+
         # try:
         self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
-                                                                                                                         datetime.strptime('01/01/10', '%d/%m/%y'), datetime.strptime('02/02/20', '%d/%m/%y'),
+                                                                                                                         datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
                                                                                                                          loading_add, unloading_add, int(cargo_weights), int(distance)))
         # except:
         #     print('error')
@@ -223,6 +291,12 @@ class Contracts(QWidget):
         self.contracts_cost.setText(str(self.cur.fetchall()[0][0]))
         print(self.cur.fetchall())
 
+    def calculate_time(self):
+        try:
+            distance = float(self.distance.text())
+        except:
+            return
+        self.time.setText(str(int(distance / 1000) + 1))
 
     def con(self):
         self.conn = psycopg2.connect(user="postgres",
@@ -254,14 +328,23 @@ class Contracts(QWidget):
         print("i print")
 
 
+    @pyqtSlot()
+    def on_click_cars(self):
+        self.window().close()
+        if self.w is None:
+            self.w = cars.Cars()
+            self.w.show()
 
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
 
 
     @pyqtSlot()
-    def to_menu(self):
+    def on_click_drivers(self):
         self.window().close()
         if self.w is None:
-            self.w = main.Menu()
+            self.w = drivers.Drivers()
             self.w.show()
 
         else:
@@ -269,12 +352,59 @@ class Contracts(QWidget):
             self.w = None  # Discard reference.
 
     @pyqtSlot()
-    def on_click_drivers(self):
-        print('drivers')
+    def on_click_contracts(self):
+        self.window().close()
+        if self.w is None:
+            self.w = contracts.Contracts()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
 
     @pyqtSlot()
-    def on_click_raice(self):
-        print('raice')
+    def on_click_clients(self):
+        self.window().close()
+        if self.w is None:
+            self.w = clients.Clients()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_garage(self):
+        self.window().close()
+        if self.w is None:
+            self.w = garage.Garage()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_free_drivers(self):
+        self.window().close()
+        if self.w is None:
+            self.w = free_drivers.Free_drivers()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_cars_drivers(self):
+        self.window().close()
+        if self.w is None:
+            self.w = cars_drivers.Cars_Drivers()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
 
 
 
@@ -282,7 +412,7 @@ class Tb(QTableWidget):
     def __init__(self, wg):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
-        self.setGeometry(10, 10, 855, 500)
+        self.setGeometry(10, 40, 975, 500)
         self.setColumnCount(10)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
@@ -337,3 +467,9 @@ class Tb(QTableWidget):
         self.wg.unloading_add.setText(self.item(row, 7).text().strip())
         self.wg.cargo_weights.setText(self.item(row, 8).text().strip())
         self.wg.distance.setText(self.item(row, 9).text().strip())
+
+if __name__ == '__main__':
+
+    app = QApplication(sys.argv)
+    ex = Contracts()
+    sys.exit(app.exec_())

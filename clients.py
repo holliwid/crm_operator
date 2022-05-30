@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import main
-
+import cars, contracts, drivers, clients, garage, free_drivers, cars_drivers
+import navbar
 
 import psycopg2
 from PyQt5.QtGui import *
@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 
-class Clients(QWidget):
+class Clients(QMainWindow):
 
 
 
@@ -18,6 +18,7 @@ class Clients(QWidget):
         super().__init__()
         self.con()
         self.w = None
+        navbar.createToolBars(self)
         # подключить базу данных
         self.con()
         # параметры окна
@@ -32,7 +33,7 @@ class Clients(QWidget):
         # кнопка "обновить"
         self.btn = QPushButton('Обновить', self)
         self.btn.resize(150, 40)
-        self.btn.move(300, 10)
+        self.btn.move(300, 40)
         self.btn.clicked.connect(self.upd)
         # здесь идентификатор
         self.idp = QLineEdit(self)
@@ -40,11 +41,11 @@ class Clients(QWidget):
         self.idp.resize(150, 40)
         self.idp.move(400, 50)
         self.idp.hide()
-        # здесь тип машины
+        # имя
         self.name = QLineEdit(self)
         self.name.setPlaceholderText('ФИО')
         self.name.resize(150, 40)
-        self.name.move(300, 50)
+        self.name.move(300, 90)
         # кнопка добавить запись
         self.btn = QPushButton('Добавить', self)
         self.btn.resize(150, 40)
@@ -56,9 +57,6 @@ class Clients(QWidget):
         self.btn.move(300, 310)
         self.btn.clicked.connect(self.dels)
 
-        self.btn = QPushButton(f'Меню', self)
-        self.btn.setGeometry(30, self.height() - 100, 100, 50)
-        self.btn.clicked.connect(self.to_menu)
 
 
 
@@ -165,15 +163,78 @@ class Clients(QWidget):
                                      database="postgres")
         self.cur = self.conn.cursor()
 
+    @pyqtSlot()
+    def on_click_cars(self):
+        self.window().close()
+        if self.w is None:
+            self.w = cars.Cars()
+            self.w.show()
 
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
 
+    @pyqtSlot()
+    def on_click_drivers(self):
+        self.window().close()
+        if self.w is None:
+            self.w = drivers.Drivers()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_contracts(self):
+        self.window().close()
+        if self.w is None:
+            self.w = contracts.Contracts()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_clients(self):
+        self.window().close()
+        if self.w is None:
+            self.w = clients.Clients()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_garage(self):
+        self.window().close()
+        if self.w is None:
+            self.w = garage.Garage()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
+
+    @pyqtSlot()
+    def on_click_free_drivers(self):
+        self.window().close()
+        if self.w is None:
+            self.w = free_drivers.Free_drivers()
+            self.w.show()
+
+        else:
+            self.w.close()  # Close window.
+            self.w = None  # Discard reference.
 
 
     @pyqtSlot()
-    def to_menu(self):
+    def on_click_cars_drivers(self):
         self.window().close()
         if self.w is None:
-            self.w = main.Menu()
+            self.w = cars_drivers.Cars_Drivers()
             self.w.show()
 
         else:
@@ -185,7 +246,7 @@ class Tb(QTableWidget):
     def __init__(self, wg):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
-        self.setGeometry(10, 10, 280, 500)
+        self.setGeometry(10, 40, 280, 500)
         self.setColumnCount(2)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
@@ -223,7 +284,7 @@ class Tb_contacts(QTableWidget):
     def __init__(self, wg):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
-        self.setGeometry(500, 10, 280, 500)
+        self.setGeometry(500, 40, 280, 500)
         self.setColumnCount(3)
         self.verticalHeader().hide();
         self.updt('-1') # обновить таблицу
