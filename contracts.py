@@ -33,6 +33,7 @@ class Contracts(QMainWindow):
 
         self.tb = Tb(self)
 
+        self.onlyInt = QIntValidator()
 
         # кнопки
         self.btn = QPushButton('Все рейсы', self)
@@ -174,11 +175,15 @@ class Contracts(QMainWindow):
         self.cargo_weights.setPlaceholderText('Вес груза')
         self.cargo_weights.resize(150, 40)
         self.cargo_weights.move(760, 570)
+        self.cargo_weights.setValidator(self.onlyInt)
+
         #
         self.distance = QLineEdit(self)
         self.distance.setPlaceholderText('Дистанция')
         self.distance.resize(150, 40)
         self.distance.move(760, 620)
+        self.distance.setValidator(self.onlyInt)
+
 
 
         #Стоимость
@@ -186,6 +191,7 @@ class Contracts(QMainWindow):
         self.contracts_cost.setPlaceholderText('Стоимость')
         self.contracts_cost.resize(170, 40)
         self.contracts_cost.move(650, 690)
+        self.contracts_cost.setReadOnly(True)
         #Рассчитать
         self.btn = QPushButton('Рассчитать стоимость', self)
         self.btn.resize(170, 40)
@@ -197,6 +203,7 @@ class Contracts(QMainWindow):
         self.time.setPlaceholderText('Время')
         self.time.resize(170, 40)
         self.time.move(830, 690)
+        self.time.setReadOnly(True)
         # Рассчитать
         self.btn = QPushButton('Рассчитать время', self)
         self.btn.resize(170, 40)
@@ -207,6 +214,7 @@ class Contracts(QMainWindow):
         self.diem.setPlaceholderText('Суточные')
         self.diem.resize(150, 40)
         self.diem.move(950, 570)
+        self.diem.setValidator(self.onlyInt)
 
 
 
@@ -284,20 +292,23 @@ class Contracts(QMainWindow):
         diem = self.diem.text()
         # print(datetime.strptime(dayFrom, '%d.%m.%y'))
 
-
-
-
-        try:
-            self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
-                                                                                                                            datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
-                                                                                                             loading_add, unloading_add, int(cargo_weights), int(distance), int(diem)))
-            self.cur.execute(f"update cars set mileage = mileage + {int(distance)} where cars.car_id in \
-                            (select c2.car_id  from contracts c \
-	                        left join cars_drivers cd  on cd.cars_drivers_id = c.cars_drivers_id \
-		                    left join cars c2 on c2.car_id = cd.car_id  where c.cars_drivers_id = {int(cars_drivers)}) ")
-        except:
-            print('error')
-        self.upd()
+        if (int(datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')).day - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d')).day) >= int(distance)/1000):
+            try:
+                self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
+                                                                                                                                datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
+                                                                                                                 loading_add, unloading_add, int(cargo_weights), int(distance), int(diem)))
+                self.cur.execute(f"update cars set mileage = mileage + {int(distance)} where cars.car_id in \
+                                (select c2.car_id  from contracts c \
+                                left join cars_drivers cd  on cd.cars_drivers_id = c.cars_drivers_id \
+                                left join cars c2 on c2.car_id = cd.car_id  where c.cars_drivers_id = {int(cars_drivers)}) ")
+            except:
+                print('error')
+            self.upd()
+        else:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Водитель не успеет за такой срок")
+            x = msg.exec_()  # this will show our messagebox
 
     # удалить из таблицы строку
     def dels(self):
