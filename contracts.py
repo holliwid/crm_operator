@@ -125,7 +125,7 @@ class Contracts(QMainWindow):
 
         self.cars_drivers_name = QLineEdit(self)
         self.cars_drivers_name.setPlaceholderText('Водитель и машина')
-        self.cars_drivers_name.resize(150, 40)
+        self.cars_drivers_name.resize(350, 40)
         self.cars_drivers_name.move(180, 740)
         self.cars_drivers_name.setReadOnly(True)
 
@@ -240,7 +240,7 @@ class Contracts(QMainWindow):
 
     def change_drivers_cars(self):
         self.cars_drivers.clear()
-        rate_id = (self.rate_id.currentIndex())
+        rate_id = int(self.rate_id.currentIndex()) + 1
         self.cur.execute(f"select cd.cars_drivers_id  from rates r \
 	                     left join cars_type ct on ct.cars_type_id = r.cars_type_id \
 		                 left join cars c on c.cars_type_id = ct.cars_type_id \
@@ -283,6 +283,8 @@ class Contracts(QMainWindow):
         distance = self.distance.text()
         diem = self.diem.text()
         # print(datetime.strptime(dayFrom, '%d.%m.%y'))
+
+
 
 
         try:

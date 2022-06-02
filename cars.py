@@ -121,6 +121,11 @@ class Cars(QMainWindow):
         self.number_of_seats.resize(150, 40)
         self.number_of_seats.move(410, 660)
 
+        self.mileage = QLineEdit(self)
+        self.mileage.setPlaceholderText('Пробег')
+        self.mileage.resize(150, 40)
+        self.mileage.move(410, 710)
+
         self.ctc = QLineEdit(self)
         self.ctc.setPlaceholderText('СТС')
         self.ctc.resize(150, 40)
@@ -150,6 +155,7 @@ class Cars(QMainWindow):
         self.year_of_release.setText('')
         self.load_capacity.setText('')
         self.number_of_seats.setText('')
+        self.mileage.setText('')
         self.ctc.setText('')
 
 
@@ -172,9 +178,10 @@ class Cars(QMainWindow):
             number_of_seats = int(self.number_of_seats.text())
             ctc = self.ctc.text()
             under_repair = bool(self.under_repair.checkState())
+            mileage = int(self.mileage.text())
 
-            self.cur.execute("insert into cars (cars_type_id, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair) \
-                          values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (type_index, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair))
+            self.cur.execute("insert into cars (cars_type_id, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair, mileage) \
+                          values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s)", (type_index, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair, mileage))
         except:
             print('error')
         self.upd()
@@ -284,7 +291,7 @@ class Tb(QTableWidget):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
         self.setGeometry(10, 40, 1100, 500)
-        self.setColumnCount(13)
+        self.setColumnCount(14)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
         self.setEditTriggers(QTableWidget.NoEditTriggers) # запретить изменять поля
@@ -294,8 +301,8 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['ID','Тип', 'Изображение', 'Марка', 'Номер', 'Длина', 'Ширина', 'Высота', 'Дата произвобства', 'Грузоподъёмность', 'Количество мест', 'СТС', 'В ремонте']) # заголовки столцов
-        self.wg.cur.execute("select c.car_id, ct.type_name, c.img, c.mark, c.car_number, c.length, c.width, c.height, c.year_of_release, c.load_capacity, c.number_of_seats, c.ctc, c.under_repair  from cars c \
+        self.setHorizontalHeaderLabels(['ID','Тип', 'Изображение', 'Марка', 'Номер', 'Длина', 'Ширина', 'Высота', 'Дата произвобства', 'Грузоподъёмность', 'Количество мест', 'СТС', 'В ремонте', 'Пробег']) # заголовки столцов
+        self.wg.cur.execute("select c.car_id, ct.type_name, c.img, c.mark, c.car_number, c.length, c.width, c.height, c.year_of_release, c.load_capacity, c.number_of_seats, c.ctc, c.under_repair, c.mileage  from cars c \
 	                         left join cars_type ct on c.cars_type_id = ct.cars_type_id ")
         rows = self.wg.cur.fetchall()
         print(rows)
