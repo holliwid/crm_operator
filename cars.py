@@ -159,37 +159,34 @@ class Cars(QMainWindow):
 
     # добавить таблицу новую строку
     def ins(self):
-        # try:
-        type_index = self.type.currentIndex() + 1
-        img = self.img.text()
-        mark = self.mark.text()
-        car_number = self.num.text()
-        length = float(self.length.text())
-        width = float(self.width.text())
-        height = float(self.height.text())
-        year_of_release = datetime.strptime(self.year_of_release.text(), '%Y-%m-%d')
-        load_capacity = float(self.load_capacity.text())
-        number_of_seats = int(self.number_of_seats.text())
-        ctc = self.ctc.text()
-        under_repair = bool(self.under_repair.checkState())
-        # except:
-        #     return
+        try:
+            type_index = self.type.currentIndex() + 1
+            img = self.img.text()
+            mark = self.mark.text()
+            car_number = self.num.text()
+            length = float(self.length.text())
+            width = float(self.width.text())
+            height = float(self.height.text())
+            year_of_release = datetime.strptime(self.year_of_release.text(), '%Y-%m-%d')
+            load_capacity = float(self.load_capacity.text())
+            number_of_seats = int(self.number_of_seats.text())
+            ctc = self.ctc.text()
+            under_repair = bool(self.under_repair.checkState())
 
-        # try:
-        self.cur.execute("insert into cars (cars_type_id, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair) \
+            self.cur.execute("insert into cars (cars_type_id, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair) \
                           values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (type_index, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair))
-        # except:
-        #     print('error')
+        except:
+            print('error')
         self.upd()
 
     # удалить из таблицы строку
     def dels(self):
         try:
             ids = int(self.idp.text())  # идентификатор строки
+            self.cur.execute("delete from cars where car_id=%s", (ids,))
+            self.conn.commit()
         except:
             return
-        self.cur.execute("delete from cars where car_id=%s", (ids,))
-        self.conn.commit()
         self.upd()
 
 

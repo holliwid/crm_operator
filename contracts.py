@@ -28,7 +28,7 @@ class Contracts(QMainWindow):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-        self.setWindowTitle('Рейсы')
+        self.setWindowTitle('Контракты')
 
 
         self.tb = Tb(self)
@@ -67,10 +67,11 @@ class Contracts(QMainWindow):
         self.contracts_id.hide()
         # здесь ид клиета
         self.client_id_label = QLabel(self)
-        self.client_id_label.setText('ID клиента')
+        self.client_id_label.setText('Код клиента')
         self.client_id_label.setAlignment(Qt.AlignCenter)
         self.client_id_label.resize(150, 20)
         self.client_id_label.move(20, 550)
+
 
         self.client_id = QComboBox(self)
         self.client_id.resize(150, 40)
@@ -80,6 +81,10 @@ class Contracts(QMainWindow):
         data = self.cur.fetchall()
         for item_name in data:
             self.client_id.addItem(str(item_name[0]))
+        self.client_id.currentIndexChanged.connect(self.change_name)
+
+
+
 
         self.client_id_name = QLineEdit(self)
         self.client_id_name.setPlaceholderText('ФИО клиента')
@@ -88,28 +93,22 @@ class Contracts(QMainWindow):
         self.client_id_name.setReadOnly(True)
 
         # здесь тариф
-        self.rate_id_label = QLabel(self)
-        self.rate_id_label.setText('ID тарифа')
-        self.rate_id_label.setAlignment(Qt.AlignCenter)
-        self.rate_id_label.resize(150, 20)
-        self.rate_id_label.move(20, 620)
+        self.client_id_label = QLabel(self)
+        self.client_id_label.setText('Тариф')
+        self.client_id_label.setAlignment(Qt.AlignCenter)
+        self.client_id_label.resize(150, 20)
+        self.client_id_label.move(20, 620)
 
         self.rate_id = QComboBox(self)
         self.rate_id.setPlaceholderText('ID тарифа')
         self.rate_id.resize(150, 40)
         self.rate_id.move(20, 650)
-        self.rate_id.activated.connect(self.change_drivers_cars)
+        self.rate_id.currentIndexChanged.connect(self.change_drivers_cars)
 
-        self.cur.execute("SELECT rate_id FROM rates")
+        self.cur.execute("SELECT rate_name FROM rates")
         data = self.cur.fetchall()
         for item_name in data:
             self.rate_id.addItem(str(item_name[0]))
-
-        self.client_id_name = QLineEdit(self)
-        self.client_id_name.setPlaceholderText('Навание тарифа')
-        self.client_id_name.resize(150, 40)
-        self.client_id_name.move(180, 650)
-        self.client_id_name.setReadOnly(True)
 
         # здесь номер машины и водителя
         self.сars_drivers_id_label = QLabel(self)
@@ -122,12 +121,13 @@ class Contracts(QMainWindow):
         self.cars_drivers.setPlaceholderText('Сars drivers')
         self.cars_drivers.resize(150, 40)
         self.cars_drivers.move(20, 740)
+        self.cars_drivers.currentIndexChanged.connect(self.change_cars_drivers)
 
-        self.client_id_name = QLineEdit(self)
-        self.client_id_name.setPlaceholderText('Водитель и машина')
-        self.client_id_name.resize(150, 40)
-        self.client_id_name.move(180, 740)
-        self.client_id_name.setReadOnly(True)
+        self.cars_drivers_name = QLineEdit(self)
+        self.cars_drivers_name.setPlaceholderText('Водитель и машина')
+        self.cars_drivers_name.resize(150, 40)
+        self.cars_drivers_name.move(180, 740)
+        self.cars_drivers_name.setReadOnly(True)
 
 
         # Даты
@@ -203,6 +203,13 @@ class Contracts(QMainWindow):
         self.btn.move(830, 740)
         self.btn.clicked.connect(self.calculate_time)
 
+        self.diem = QLineEdit(self)
+        self.diem.setPlaceholderText('Суточные')
+        self.diem.resize(150, 40)
+        self.diem.move(950, 570)
+
+
+
         self.show()
 
 
@@ -212,11 +219,28 @@ class Contracts(QMainWindow):
 
 
 
+    def change_name(self):
+        client_id = int(self.client_id.currentText())
+        self.cur.execute(f"select name from clients where client_id = {client_id}")
+        data = self.cur.fetchall()
+        self.client_id_name.setText(data[0][0])
+
+
+    def change_cars_drivers(self):
+        cars_drivers = int(self.cars_drivers.currentIndex())+1
+        self.cur.execute(f"select c.mark, d.name_driver from cars_drivers cd\
+                             left join cars c on c.car_id =cd.car_id \
+ 	                         left join drivers d on d.driver_id = cd.driver_id where cars_drivers_id ={cars_drivers} "
+        )
+        data = self.cur.fetchall()
+        print(data)
+        if data != []:
+            self.cars_drivers_name.setText(data[0][0]+ ' ' + data[0][1])
 
 
     def change_drivers_cars(self):
         self.cars_drivers.clear()
-        rate_id = (self.rate_id.currentText())
+        rate_id = (self.rate_id.currentIndex())
         self.cur.execute(f"select cd.cars_drivers_id  from rates r \
 	                     left join cars_type ct on ct.cars_type_id = r.cars_type_id \
 		                 left join cars c on c.cars_type_id = ct.cars_type_id \
@@ -249,7 +273,7 @@ class Contracts(QMainWindow):
     def ins(self):
         contracts_id = self.contracts_id.text()
         client_id = self.client_id.currentText()
-        rate_id = self.rate_id.currentText()
+        rate_id = self.rate_id.currentIndex() + 1
         cars_drivers = self.cars_drivers.currentText()
         dayFrom = self.dayFrom.text()
         dayTo = self.dayTo.text()
@@ -257,15 +281,20 @@ class Contracts(QMainWindow):
         unloading_add = self.unloading_add.text()
         cargo_weights = self.cargo_weights.text()
         distance = self.distance.text()
+        diem = self.diem.text()
         # print(datetime.strptime(dayFrom, '%d.%m.%y'))
 
 
-        # try:
-        self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
-                                                                                                                         datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
-                                                                                                                         loading_add, unloading_add, int(cargo_weights), int(distance)))
-        # except:
-        #     print('error')
+        try:
+            self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
+                                                                                                                            datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
+                                                                                                             loading_add, unloading_add, int(cargo_weights), int(distance), int(diem)))
+            self.cur.execute(f"update cars set mileage = mileage + {int(distance)} where cars.car_id in \
+                            (select c2.car_id  from contracts c \
+	                        left join cars_drivers cd  on cd.cars_drivers_id = c.cars_drivers_id \
+		                    left join cars c2 on c2.car_id = cd.car_id  where c.cars_drivers_id = {int(cars_drivers)}) ")
+        except:
+            print('error')
         self.upd()
 
     # удалить из таблицы строку
@@ -280,16 +309,20 @@ class Contracts(QMainWindow):
 
     def calculate_cost(self):
         try:
-            rate_id = self.rate_id.currentText()
+            rate_id = self.rate_id.currentIndex() + 1
             distance = int(self.distance.text())
         except:
             return
 
-        self.cur.execute(f"select r.cost_rates * {distance} from rates r \
-	                      where r.rate_id = {rate_id}")
+        try:
+            self.cur.execute(f"select r.cost_rates * {distance} from rates r \
+                              where r.rate_id = {rate_id}")
 
-        self.contracts_cost.setText(str(self.cur.fetchall()[0][0]))
-        print(self.cur.fetchall())
+            data = self.cur.fetchall()
+            self.contracts_cost.setText(str(data[0][0]))
+        except:
+            pass
+
 
     def calculate_time(self):
         try:
@@ -413,7 +446,7 @@ class Tb(QTableWidget):
         self.wg = wg  # запомнить окно, в котором эта таблица показывается
         super().__init__(wg)
         self.setGeometry(10, 40, 975, 500)
-        self.setColumnCount(10)
+        self.setColumnCount(11)
         self.verticalHeader().hide();
         self.updt() # обновить таблицу
         self.setEditTriggers(QTableWidget.NoEditTriggers) # запретить изменять поля
@@ -423,7 +456,7 @@ class Tb(QTableWidget):
     def updt(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['ID контракта', 'ID клиента', 'ID тарифа', 'cars_drivers', 'Дата начала', 'Дата конца', 'Адресс загрузки', 'Адресс выгрузки', 'Вес груза', 'Дистанция']) # заголовки столцов
+        self.setHorizontalHeaderLabels(['Номер контракта', 'Код клиента', 'Код тарифа', 'Машина-Водитель', 'Дата начала', 'Дата конца', 'Адресс загрузки', 'Адресс выгрузки', 'Вес груза', 'Дистанция', 'Командировочные']) # заголовки столцов
         self.wg.cur.execute("select * from contracts")
         rows = self.wg.cur.fetchall()
         print(rows)
@@ -441,7 +474,7 @@ class Tb(QTableWidget):
     def updt_current(self):
         self.clear()
         self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['ID контракта', 'ID клиента', 'ID тарифа', 'cars_drivers', 'Дата начала', 'Дата конца', 'Адресс загрузки', 'Адресс выгрузки', 'Вес груза', 'Дистанция']) # заголовки столцов
+        self.setHorizontalHeaderLabels(['Номер контракта', 'Код клиента', 'Код тарифа', 'Машина-Водитель', 'Дата начала', 'Дата конца', 'Адресс загрузки', 'Адресс выгрузки', 'Вес груза', 'Дистанция', 'Командировочные']) # заголовки столцов
         self.wg.cur.execute("select * from contracts where dayto > current_date")
         rows = self.wg.cur.fetchall()
         print(rows)
@@ -458,7 +491,7 @@ class Tb(QTableWidget):
 # обработка щелчка мыши по таблице
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.contracts_id.setText(self.item(row, 0).text())
-        self.wg.client_id.setCurrentIndex(int(self.item(row, 1).text().strip())-1)
+        self.wg.client_id.setCurrentText(self.item(row, 1).text().strip())
         self.wg.rate_id.setCurrentIndex(int(self.item(row, 2).text().strip())-1)
         self.wg.cars_drivers.setCurrentText(self.item(row, 3).text().strip())
         self.wg.dayFrom.setText(self.item(row, 4).text().strip())

@@ -152,8 +152,8 @@ class Tb(QTableWidget):
         self.wg.cur.execute("select drivers.driver_id, drivers.name_driver, drivers.categorie_id from drivers \
 	                         left join cars_drivers cd on cd.driver_id  = drivers.driver_id \
 		                     left join contracts c on c.cars_drivers_id = cd.cars_drivers_id \
-                             where c.dayto < current_date  \
-                             or c.dayfrom > current_date \
+                             where (c.dayto < current_date  \
+                             or c.dayfrom > current_date) \
                              or c.dayfrom is null")
         rows = self.wg.cur.fetchall()
         print(rows)

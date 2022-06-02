@@ -90,10 +90,10 @@ class Drivers(QMainWindow):
 
     # добавить таблицу новую строку
     def ins(self):
-        categories = self.categories.currentIndex() + 1
-        idp, name = self.idp.text(), self.name.text()
-        experience = int(self.experience.text())
         try:
+            categories = self.categories.currentIndex() + 1
+            idp, name = self.idp.text(), self.name.text()
+            experience = int(self.experience.text())
             self.cur.execute("insert into drivers (name_driver, categorie_id, experience) values (%s,%s,%s)", (name, categories, experience))
         except:
             print('error')
@@ -103,11 +103,12 @@ class Drivers(QMainWindow):
     def dels(self):
         try:
             ids = int(self.idp.text())  # идентификатор строки
+
+            self.cur.execute("delete from drivers where driver_id=%s", (ids,))
+            self.conn.commit()
+            self.upd()
         except:
             return
-        self.cur.execute("delete from drivers where driver_id=%s", (ids,))
-        self.conn.commit()
-        self.upd()
 
 
     def con(self):

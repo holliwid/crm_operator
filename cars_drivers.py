@@ -44,6 +44,11 @@ class Cars_Drivers(QMainWindow):
         self.idp.resize(150, 40)
         self.idp.move(650, 110)
         # здесь категории
+        self.driver_name = QLineEdit(self)
+        self.driver_name.setPlaceholderText('ФИО водителя')
+        self.driver_name.resize(150, 40)
+        self.driver_name.move(820, 160)
+
         self.drivers = QComboBox(self)
         self.drivers.resize(150, 40)
         self.drivers.move(650, 160)
@@ -52,6 +57,15 @@ class Cars_Drivers(QMainWindow):
         data = self.cur.fetchall()
         for item_name in data:
             self.drivers.addItem(str(item_name[0]))
+        self.drivers.currentIndexChanged.connect(self.change_driver_name)
+
+
+
+        self.cars_mark = QLineEdit(self)
+        self.cars_mark.setPlaceholderText('Марка автомобился')
+        self.cars_mark.resize(150, 40)
+        self.cars_mark.move(820, 210)
+
 
         self.cars = QComboBox(self)
         self.cars.resize(150, 40)
@@ -61,6 +75,7 @@ class Cars_Drivers(QMainWindow):
         data = self.cur.fetchall()
         for item_name in data:
             self.cars.addItem(str(item_name[0]))
+        self.cars.currentIndexChanged.connect(self.change_car_mark)
 
 
         # кнопка добавить запись
@@ -75,7 +90,17 @@ class Cars_Drivers(QMainWindow):
         self.btn.clicked.connect(self.dels)
 
 
-    # соединение с базой данных
+    def change_driver_name(self):
+        driver_id = int(self.drivers.currentText())
+        self.cur.execute(f"select name_driver from drivers where driver_id = {driver_id}")
+        data = self.cur.fetchall()
+        self.driver_name.setText(data[0][0])
+
+    def change_car_mark(self):
+        car_id = int(self.cars.currentText())
+        self.cur.execute(f"select mark from cars where car_id = {car_id}")
+        data = self.cur.fetchall()
+        self.cars_mark.setText(data[0][0])
 
 
     # обновить таблицу и поля
@@ -215,9 +240,9 @@ class Tb(QTableWidget):
         self.clear()
         self.setRowCount(0);
         self.setHorizontalHeaderLabels(['ID', 'ID машины', 'Марка', 'ID водителя', 'ФИО', 'Категория прав', 'Стаж']) # заголовки столцов
-        self.wg.cur.execute("select cd.cars_drivers_id, c.car_id, c.mark, d.driver_id, d.name_driver, d.categorie_id, d.experience  from cars_drivers cd\
+        self.wg.cur.execute("select cd.cars_drivers_id, c.car_id, c.mark, d.driver_id, d.name_driver, cat.categorie_name, d.experience  from cars_drivers cd\
                              left join cars c on c.car_id =cd.car_id \
- 	                         left join drivers d on d.driver_id = cd.driver_id ")
+ 	                         left join drivers d on d.driver_id = cd.driver_id    left join categories cat on cat.categorie_id = d.categorie_id")
         rows = self.wg.cur.fetchall()
         print(rows)
         i = 0
