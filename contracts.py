@@ -5,12 +5,16 @@ import cars, contracts, drivers, clients, garage, free_drivers,cars_drivers
 import navbar
 
 
-
+from fpdf import FPDF
 import sys
 import psycopg2
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtWebEngineWidgets import *
+import weasyprint
+from jinja2 import *
+
 
 
 class Contracts(QMainWindow):
@@ -59,6 +63,11 @@ class Contracts(QMainWindow):
         self.btn = QPushButton(f'Распечатать контракт', self)
         self.btn.setGeometry(1000, 180, 200, 50)
         self.btn.clicked.connect(self.save_contract)
+
+        self.btn = QPushButton(f'Распечатать накладную', self)
+        self.btn.setGeometry(1000, 250, 200, 50)
+        self.btn.clicked.connect(self.save_invoice)
+
 
         # здесь идентификатор
         self.contracts_id = QLineEdit(self)
@@ -382,7 +391,10 @@ class Contracts(QMainWindow):
             dayTo = self.dayTo.text()
             days_in_trip = int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(
                 datetime.strptime(dayFrom, '%Y-%m-%d'))).days)
-            diem = (days_in_trip - 1) * 1500
+            if days_in_trip != 0:
+                diem = (days_in_trip - 1) * 1500
+            else:
+                diem = 0
             self.diem.setText(str(diem))
         except:
             return
@@ -398,25 +410,105 @@ class Contracts(QMainWindow):
 
 
     def save_contract(self):
-        dlg = QFileDialog(self)
-        dlg.setFileMode(QFileDialog.AnyFile)
-        dlg.selectFile(".txt")
-        dlg.setDefaultSuffix(".txt")
-        dlg.setNameFilters(["Text files (*.txt)"])
-        path = dlg.getSaveFileName(self, "Save file", ".txt", "Text files (*.txt)")
-        if not path:
+        try:
+            contract_id = int(self.contracts_id.text())
+            self.calculate_cost()
+            cost = self.contracts_cost.text()
+        except:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Выберите контракт")
+            x = msg.exec_()  # this will show our messagebox
             return
-        print(path)
-        file = open(path[0], 'w')
-        row = self.tb.currentRow()
-        text = ""
-        for x in range(1, 10):
-            text += self.tb.horizontalHeaderItem(x).text() + ': ' + self.tb.item(row, x).text() + '\n'
-        print(text)
-        file.write(text)
-        file.close()
-        print("i print")
 
+        self.cur.execute(f"select cli.name, contr.dayfrom, contr.dayto, contr.loading_address, contr.unloading_address, rat.rate_name, rat.cost_rates, cars.mark, cars.car_number, cars.number_of_seats, dri.name_driver, contr.cargo_weight, contr.distance   from contracts contr \
+                            left join clients cli on cli.client_id = contr.client_id \
+                                left join rates rat on rat.rate_id = contr.rate_id \
+                                    left join cars_drivers cd on cd.cars_drivers_id = contr.cars_drivers_id \
+                                        left join cars on cars.car_id = cd.car_id \
+                                            left join drivers dri on dri.driver_id = cd.driver_id \
+                        where contr.contracts_id  = {contract_id}")
+        data = self.cur.fetchall()
+        env = Environment(
+            loader=FileSystemLoader('.'),
+            autoescape=select_autoescape(['html'])
+        )
+        print(data)
+        template = env.get_template('src_for_client.html')
+        rendered_page = template.render(
+            name_clients=f"{data[0][1]}",
+            dayFrom=f"{data[0][1]}",
+            dayTo=f"{data[0][2]}",
+            name_driver=f"{data[0][10]}",
+            car_mark=f"{data[0][7]}",
+            car_number=f"{data[0][8]}",
+            number_seat=f"{data[0][9]}",
+            rate_name=f"{data[0][5]}",
+            add_loading=f"{data[0][3]}",
+            add_unloading=f"{data[0][4]}",
+            cost=f"{cost}",
+            contract_id=f"{contract_id}",
+            weight=f"{data[0][11]}",
+            distance=f"{data[0][12]}"
+        )
+        with open('./for_client.html', 'w', encoding="utf8") as file:
+            file.write(rendered_page)
+
+        weasyprint.HTML('./for_client.html').write_pdf('for_client.pdf')
+
+
+    def save_invoice(self):
+        try:
+            contract_id = int(self.contracts_id.text())
+            dayFrom = self.dayFrom.text()
+            dayTo = self.dayTo.text()
+            days_in_trip = int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(
+                datetime.strptime(dayFrom, '%Y-%m-%d'))).days)
+            if days_in_trip != 0:
+                diem = (days_in_trip - 1) * 1500
+            else:
+                diem = 0
+        except:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Выберите контракт")
+            x = msg.exec_()  # this will show our messagebox
+            return 
+
+        self.cur.execute(f"select cli.name, contr.dayfrom, contr.dayto, contr.loading_address, contr.unloading_address, rat.rate_name, rat.cost_rates, cars.mark, cars.car_number, cars.number_of_seats, dri.name_driver, contr.cargo_weight, contr.distance   from contracts contr \
+                                    left join clients cli on cli.client_id = contr.client_id \
+                                        left join rates rat on rat.rate_id = contr.rate_id \
+                                            left join cars_drivers cd on cd.cars_drivers_id = contr.cars_drivers_id \
+                                                left join cars on cars.car_id = cd.car_id \
+                                                    left join drivers dri on dri.driver_id = cd.driver_id \
+                                where contr.contracts_id  = {contract_id}")
+        data = self.cur.fetchall()
+        env = Environment(
+            loader=FileSystemLoader('.'),
+            autoescape=select_autoescape(['html'])
+        )
+        print(data)
+        template = env.get_template('./src_for_driver.html')
+        rendered_page = template.render(
+            name_clients=f"{data[0][1]}",
+            dayFrom=f"{data[0][1]}",
+            dayTo=f"{data[0][2]}",
+            name_driver=f"{data[0][10]}",
+            car_mark=f"{data[0][7]}",
+            car_number=f"{data[0][8]}",
+            number_seat=f"{data[0][9]}",
+            rate_name=f"{data[0][5]}",
+            add_loading=f"{data[0][3]}",
+            add_unloading=f"{data[0][4]}",
+            contract_id=f"{contract_id}",
+            weight=f"{data[0][11]}",
+            diem=f"{diem}",
+            distance=f"{data[0][12]}"
+        )
+        with open('for_driver.html', 'w', encoding="utf8") as file:
+            file.write(rendered_page)
+
+        weasyprint.HTML('for_driver.html').write_pdf('for_driver.pdf')
 
     @pyqtSlot()
     def on_click_cars(self):

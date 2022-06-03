@@ -1,0 +1,55 @@
+body{
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.head{
+    margin-top: 50px;
+    text-align: center;
+    font-size: 30px;
+}
+
+.main{
+    width: fit-content;
+    margin-top: 50px;
+    margin-left: 5%
+}
+
+table, th, td {
+    border-collapse: collapse;
+    border: 1px solid;
+  }
+
+td{
+    padding: 10px 10px 5px 10px;
+}
+
+.tables{
+    margin-top: 50px;
+    margin-left: 5%;
+}
+
+.table-2{
+    margin-top: 70px;
+}
+
+.sign{
+    display: flex;
+    /* justify-content: center; */
+    margin-top: 150px;
+    margin-left: 50px;
+}
+
+.sign_br{
+    width: 200px;
+    border-bottom: 1px solid;
+}
+
+.content:last-child{
+    margin-left: 50px;
+
+    display: block;
+}
+
+.content p{
+    margin-bottom: 50px;
+}

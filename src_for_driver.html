@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+
+    <link rel="stylesheet" type="text/css" href="./src.css">
+</head>
+<body>
+    <div class="head">Накладная для перевоз груза по договору №{{contract_id}}</div>
+    <div class="main">
+        <div>ФИО заказчика: {{name_clients}}</div>
+        <div>Дата начала: {{dayFrom}}</div>
+        <div>Дата окончания: {{dayTo}}</div>
+    </div>
+    <div class="tables">
+    <table>
+        <tr>
+          <td>ФИО водителя</td>
+          <td>Марка машины</td>
+          <td>Номер машины</td>
+        </tr>
+        <tr>
+            <td>{{ name_driver }}</td>
+            <td>{{car_mark}}</td>
+            <td>{{car_number}}</td>
+          </tr>
+      </table>
+      
+      <table class="table-2">
+            <tr>
+              <td>Адресс погрузки</td>
+              <td>Адресс разгрузки</td>
+              <td>Вес груза</td>
+              <td>Дистанция</td>
+              <td>Суточные</td>
+            </tr>
+            <tr>
+                <td>{{add_loading}}</td>
+                <td>{{add_unloading}}</td>
+                <td>{{distance}}</td>
+                <td>{{weight}}</td>
+                <td>{{diem}}</td>
+              </tr>
+
+      </table>       
+    </div>
+    <div class="sign">
+        <div class="content">
+            <p>От водителя:</p>
+            <div class="sign_br"></div>
+        </div>
+        <div class="content">
+            <p>От исполнителя:</p>
+            <div class="sign_br"></div>
+        </div>
+    </div>
+</body>
+</html>
