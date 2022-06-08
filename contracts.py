@@ -11,9 +11,9 @@ import psycopg2
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtWebEngineWidgets import *
-import weasyprint
+# import weasyprint
 from jinja2 import *
+import pdfkit
 
 
 
@@ -319,7 +319,7 @@ class Contracts(QMainWindow):
             # print(datetime.strptime(dayFrom, '%d.%m.%y'))
             print(int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days))
 
-            if (rate_id == 1) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/800):
+            if (rate_id == 1) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/1000):
                 try:
                     self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
                                                                                                                                     datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
@@ -331,7 +331,7 @@ class Contracts(QMainWindow):
                 except:
                     print('error')
                 self.upd()
-            elif (rate_id == 2) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/1000):
+            elif (rate_id == 2) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/800):
                 try:
                     self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
                                                                                                                                     datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
@@ -380,10 +380,13 @@ class Contracts(QMainWindow):
 
     def calculate_time(self):
         try:
-            distance = float(self.distance.text())
+            distance = int(self.distance.text())
         except:
             return
-        self.time.text = (str(int(distance / 1000) + 1))
+        if self.rate_id.currentText() == "Легковые":
+            self.time.setText(str(int(distance / 1000) + 1))
+        elif self.rate_id.currentText() == "Грузовые":
+            self.time.setText(str(int(distance / 800) + 1))
 
     def calculate_diem(self):
         try:
@@ -451,10 +454,14 @@ class Contracts(QMainWindow):
             weight=f"{data[0][11]}",
             distance=f"{data[0][12]}"
         )
-        with open('./for_client.html', 'w', encoding="utf8") as file:
-            file.write(rendered_page)
+        # with open('./for_client.html', 'w', encoding="utf8") as file:
+        #     file.write(rendered_page)
 
-        weasyprint.HTML('./for_client.html').write_pdf('for_client.pdf')
+        with open('for_client.html') as f:
+            pdfkit.from_file(f, 'for_client.pdf')
+
+        # pdfkit.from_url('./for_client.html', 'for_client.pdf')
+        #weasyprint.HTML('./for_client.html').write_pdf('for_client.pdf')
 
 
     def save_invoice(self):
@@ -473,7 +480,7 @@ class Contracts(QMainWindow):
             msg.setWindowTitle("Ошибка")
             msg.setText("Выберите контракт")
             x = msg.exec_()  # this will show our messagebox
-            return 
+            return
 
         self.cur.execute(f"select cli.name, contr.dayfrom, contr.dayto, contr.loading_address, contr.unloading_address, rat.rate_name, rat.cost_rates, cars.mark, cars.car_number, cars.number_of_seats, dri.name_driver, contr.cargo_weight, contr.distance   from contracts contr \
                                     left join clients cli on cli.client_id = contr.client_id \
@@ -505,10 +512,13 @@ class Contracts(QMainWindow):
             diem=f"{diem}",
             distance=f"{data[0][12]}"
         )
-        with open('for_driver.html', 'w', encoding="utf8") as file:
-            file.write(rendered_page)
+        # with open('for_driver.html', 'w', encoding="utf8") as file:
+        #     file.write(rendered_page)
 
-        weasyprint.HTML('for_driver.html').write_pdf('for_driver.pdf')
+        with open('for_driver.html') as f:
+            pdfkit.from_file(f, 'for_driver.pdf')
+
+        #weasyprint.HTML('for_driver.html').write_pdf('for_driver.pdf')
 
     @pyqtSlot()
     def on_click_cars(self):
