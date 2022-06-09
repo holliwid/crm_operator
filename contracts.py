@@ -5,16 +5,12 @@ import cars, contracts, drivers, clients, garage, free_drivers,cars_drivers
 import navbar
 
 
-from fpdf import FPDF
 import sys
 import psycopg2
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-# import weasyprint
 from jinja2 import *
-import pdfkit
-
 
 
 class Contracts(QMainWindow):
@@ -454,11 +450,8 @@ class Contracts(QMainWindow):
             weight=f"{data[0][11]}",
             distance=f"{data[0][12]}"
         )
-        # with open('./for_client.html', 'w', encoding="utf8") as file:
-        #     file.write(rendered_page)
-
-        with open('for_client.html') as f:
-            pdfkit.from_file(f, 'for_client.pdf')
+        with open('./for_client.html', 'w', encoding="utf8") as file:
+            file.write(rendered_page)
 
         # pdfkit.from_url('./for_client.html', 'for_client.pdf')
         #weasyprint.HTML('./for_client.html').write_pdf('for_client.pdf')
@@ -512,12 +505,16 @@ class Contracts(QMainWindow):
             diem=f"{diem}",
             distance=f"{data[0][12]}"
         )
-        # with open('for_driver.html', 'w', encoding="utf8") as file:
-        #     file.write(rendered_page)
+        with open('for_driver.html', 'w', encoding="utf8") as file:
+            file.write(rendered_page)
 
-        with open('for_driver.html') as f:
-            pdfkit.from_file(f, 'for_driver.pdf')
+        # with open('for_driver.html') as f:
+        #     pdfkit.from_file(f, 'for_driver.pdf')
 
+        # pypandoc.convert_file()
+        # pypandoc.download_pandoc()
+        # output = pypandoc.convert_file(source_file='./for_driver.html', format='html', to='docx',
+                                 # outputfile='for_driver.docx', extra_args=['-RTS'])
         #weasyprint.HTML('for_driver.html').write_pdf('for_driver.pdf')
 
     @pyqtSlot()
