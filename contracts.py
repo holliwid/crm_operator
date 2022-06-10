@@ -273,7 +273,7 @@ class Contracts(QMainWindow):
                         left join cars_drivers on cars_drivers.car_id = cars.car_id \
                         left join contracts on contracts.cars_drivers_id = cars_drivers.cars_drivers_id \
                         where rates.rate_name = '{rate_id}' \
-                        and (contracts.dayto < current_date or contracts.dayfrom > current_date or contracts.dayfrom is null)")
+                        and cars_drivers.cars_drivers_id not in (SELECT cars_drivers.cars_drivers_id FROM cars_drivers left join contracts on cars_drivers.cars_drivers_id = contracts.cars_drivers_id where contracts.dayfrom < current_date and contracts.dayto > current_date)")
         data = self.cur.fetchall()
         for item_name in data:
             print(type(item_name[0]))
@@ -294,6 +294,8 @@ class Contracts(QMainWindow):
         self.cargo_weights.setText('')
         self.distance.setText('')
         self.distance.setText('0')
+        self.cars_drivers.clear()
+
 
 
 
@@ -359,14 +361,14 @@ class Contracts(QMainWindow):
 
     def calculate_cost(self):
         try:
-            rate_id = self.rate_id.currentIndex() + 1
+            rate_name = self.rate_id.currentText()
             distance = int(self.distance.text())
         except:
             return
 
         try:
             self.cur.execute(f"select r.cost_rates * {distance} from rates r \
-                              where r.rate_id = {rate_id}")
+                              where r.rate_name = {rate_name}")
 
             data = self.cur.fetchall()
             self.contracts_cost.setText(str(data[0][0]))
@@ -649,7 +651,8 @@ class Tb(QTableWidget):
         self.wg.contracts_id.setText(self.item(row, 0).text())
         self.wg.client_id.setCurrentText(self.item(row, 1).text().strip())
         self.wg.rate_id.setCurrentIndex(int(self.item(row, 2).text().strip())-1)
-        self.wg.cars_drivers.setCurrentText(self.item(row, 3).text().strip())
+        # self.wg.cars_drivers.setCurrentText(self.item(row, 3).text().strip())
+        self.wg.cars_drivers.clear()
         self.wg.dayFrom.setText(self.item(row, 4).text().strip())
         self.wg.dayTo.setText(self.item(row, 5).text().strip())
         self.wg.loading_add.setText(self.item(row, 6).text().strip())
