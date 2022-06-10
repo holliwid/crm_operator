@@ -273,7 +273,7 @@ class Contracts(QMainWindow):
                         left join cars_drivers on cars_drivers.car_id = cars.car_id \
                         left join contracts on contracts.cars_drivers_id = cars_drivers.cars_drivers_id \
                         where rates.rate_name = '{rate_id}' \
-                        and cars_drivers.cars_drivers_id not in (SELECT cars_drivers.cars_drivers_id FROM cars_drivers left join contracts on cars_drivers.cars_drivers_id = contracts.cars_drivers_id where contracts.dayfrom < current_date and contracts.dayto > current_date)")
+                        and cars_drivers.cars_drivers_id not in (SELECT cars_drivers.cars_drivers_id FROM cars_drivers left join contracts on cars_drivers.cars_drivers_id = contracts.cars_drivers_id where contracts.dayfrom <= current_date and contracts.dayto >= current_date)")
         data = self.cur.fetchall()
         for item_name in data:
             print(type(item_name[0]))
