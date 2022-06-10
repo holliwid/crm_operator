@@ -293,21 +293,24 @@ class Tb_contacts(QTableWidget):
 
 # обновление таблицы
     def updt(self, client_id):
-        self.clear()
-        self.setRowCount(0);
-        self.setHorizontalHeaderLabels(['ID клиента','Тип', "Контакт"]) # заголовки столцов
-        self.wg.cur.execute(f"select * from clients_contacts where client_id = {int(client_id)}")
-        rows = self.wg.cur.fetchall()
+        try:
+            self.clear()
+            self.setRowCount(0);
+            self.setHorizontalHeaderLabels(['ID клиента','Тип', "Контакт"]) # заголовки столцов
+            self.wg.cur.execute(f"select * from clients_contacts where client_id = {int(client_id)}")
+            rows = self.wg.cur.fetchall()
 
-        i = 0
-        for elem in rows:
-            self.setRowCount(self.rowCount() + 1)
-            j = 0
-            for t in elem: # заполняем внутри строки
-                self.setItem(i, j, QTableWidgetItem(str(t).strip()))
-                j += 1
-            i += 1
-        self.resizeColumnsToContents()
+            i = 0
+            for elem in rows:
+                self.setRowCount(self.rowCount() + 1)
+                j = 0
+                for t in elem: # заполняем внутри строки
+                    self.setItem(i, j, QTableWidgetItem(str(t).strip()))
+                    j += 1
+                i += 1
+            self.resizeColumnsToContents()
+        except:
+            pass
 
     def cellClick(self, row, col): # row - номер строки, col - номер столбца
         self.wg.type_contact.setText(self.item(row, 1).text())
