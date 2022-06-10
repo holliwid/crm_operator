@@ -317,7 +317,7 @@ class Contracts(QMainWindow):
             # print(datetime.strptime(dayFrom, '%d.%m.%y'))
             print(int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days))
 
-            if (rate_id == 1) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/1000):
+            if (rate_id == 2) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/1000):
                 try:
                     self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
                                                                                                                                     datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
@@ -329,7 +329,7 @@ class Contracts(QMainWindow):
                 except:
                     print('error')
                 self.upd()
-            elif (rate_id == 2) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/800):
+            elif (rate_id == 3) and (int((datetime.date(datetime.strptime(dayTo, '%Y-%m-%d')) - datetime.date(datetime.strptime(dayFrom, '%Y-%m-%d'))).days) >= float(distance)/800):
                 try:
                     self.cur.execute("insert into contracts (client_id, rate_id, cars_drivers_id, dayFrom, dayTo, loading_address, unloading_address, cargo_weight, distance, diem) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (int(client_id), int(rate_id), int(cars_drivers),
                                                                                                                                     datetime.strptime(dayFrom, '%Y-%m-%d'), datetime.strptime(dayTo, '%Y-%m-%d'),
