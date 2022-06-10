@@ -366,14 +366,14 @@ class Contracts(QMainWindow):
         except:
             return
 
-        try:
-            self.cur.execute(f"select r.cost_rates * {distance} from rates r \
-                              where r.rate_name = {rate_name}")
+        # try:
+        self.cur.execute(f"select r.cost_rates * {distance} from rates r \
+                          where r.rate_name = '{rate_name}'")
 
-            data = self.cur.fetchall()
-            self.contracts_cost.setText(str(data[0][0]))
-        except:
-            pass
+        data = self.cur.fetchall()
+        self.contracts_cost.setText(str(data[0][0]))
+        # except:
+        #     pass
 
 
     def calculate_time(self):
