@@ -304,7 +304,7 @@ class Contracts(QMainWindow):
         try:
             contracts_id = self.contracts_id.text()
             client_id = self.client_id.currentText()
-            rate_id = self.rate_id.currentIndex() + 1
+            rate_id = self.rate_id.currentIndex() + 2
             cars_drivers = self.cars_drivers.currentText()
             dayFrom = self.dayFrom.text()
             dayTo = self.dayTo.text()
