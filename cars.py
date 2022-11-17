@@ -179,6 +179,7 @@ class Cars(QMainWindow):
             ctc = self.ctc.text()
             under_repair = bool(self.under_repair.checkState())
             mileage = int(self.mileage.text())
+            # print(type_index, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair, mileage)
 
             self.cur.execute("insert into cars (cars_type_id, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair, mileage) \
                           values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s)", (type_index, img, mark, car_number, length, width, height, year_of_release, load_capacity, number_of_seats, ctc, under_repair, mileage))
@@ -199,10 +200,10 @@ class Cars(QMainWindow):
 
     def con(self):
         self.conn = psycopg2.connect(user="postgres",
-                                     password="123",
+                                     password="postgres",
                                      host="127.0.0.1",
                                      port="5432",
-                                     database="postgres")
+                                     database="crm_car")
         self.cur = self.conn.cursor()
 
 

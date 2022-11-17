@@ -13,6 +13,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 
+
+
 class Drivers(QMainWindow):
 
 
@@ -113,10 +115,10 @@ class Drivers(QMainWindow):
 
     def con(self):
         self.conn = psycopg2.connect(user="postgres",
-                                     password="123",
+                                     password="postgres",
                                      host="127.0.0.1",
                                      port="5432",
-                                     database="postgres")
+                                     database="crm_car")
         self.cur = self.conn.cursor()
 
 

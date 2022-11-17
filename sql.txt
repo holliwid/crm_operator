@@ -25,7 +25,7 @@ GRANT ALL ON TABLE public.cars_type TO postgres;
 CREATE TABLE public.categories (
 	"Type" varchar NULL,
 	categorie_name varchar NOT NULL,
-	categorie_id int4 NOT NULL DEFAULT nextval('categories_categories_id_seq'::regclass),
+	categorie_id int4 NOT NULL,
 	CONSTRAINT categories_pk PRIMARY KEY (categorie_id)
 );
 
@@ -43,7 +43,7 @@ GRANT ALL ON TABLE public.categories TO postgres;
 
 CREATE TABLE public.clients (
 	client_id serial4 NOT NULL,
-	name varchar NOT NULL,
+	"name" varchar NOT NULL,
 	CONSTRAINT clients_pk PRIMARY KEY (client_id)
 );
 
@@ -73,6 +73,7 @@ CREATE TABLE public.cars (
 	number_of_seats int4 NOT NULL,
 	ctc varchar NOT NULL,
 	under_repair bool NOT NULL,
+	mileage int4 NULL DEFAULT 0,
 	CONSTRAINT cars_pk PRIMARY KEY (car_id),
 	CONSTRAINT cars_fk FOREIGN KEY (cars_type_id) REFERENCES public.cars_type(cars_type_id)
 );
@@ -133,6 +134,7 @@ CREATE TABLE public.rates (
 	rate_id serial4 NOT NULL,
 	cars_type_id int4 NOT NULL,
 	cost_rates int4 NOT NULL,
+	rate_name varchar NULL,
 	CONSTRAINT rates_pk PRIMARY KEY (rate_id),
 	CONSTRAINT rates_fk FOREIGN KEY (cars_type_id) REFERENCES public.cars_type(cars_type_id)
 );
